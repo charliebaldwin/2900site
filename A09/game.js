@@ -1,6 +1,6 @@
 // Charlie Baldwin
 // Team xxxxxx
-// Mod 1: Instead of clicking each bead to turn it black/white, click to start drawing and move the mouse over a bead to color it (+ popping feedback when coloring a bead)
+// Mod 1: Instead of clicking each bead to turn it black/white, click to start drawing and move the mouse over a bead to color it, along with a wooshing sound feedback
 // Mod 2: Instead of changing the color to black, generate a new random color that is close to the color it was at previously
 // Mod 3: Generate a completely new color each time drawing is re-enabled
 // Mod 4: Page background matches the active drawing color
@@ -8,6 +8,7 @@
 // Mod 6: Changed the status text to give brief instructions on how to use the toy
 // Mod 7: Removed bead borders for visual clarity
 // Mod 8: Increased grid size for a larger canvas
+// Mod 9: Edited the title in game.html so the browser tab has the title of the toy (Rainbow Brush)
 
 
 
@@ -166,7 +167,7 @@ PS.enter = function( x, y, data, options ) {
 
 	if (drawing) {
 		PS.color(x, y, active_color);
-		PS.audioPlay( "fx_pop", {volume: 0.5} );
+		PS.audioPlay( "fx_swoosh", {volume: 0.05} );
 
 		// change color
 		var increase =  PS.random(2) -1;
