@@ -9,6 +9,7 @@
 // Mod 7: Removed bead borders for visual clarity
 // Mod 8: Increased grid size for a larger canvas
 // Mod 9: Edited the title in game.html so the browser tab has the title of the toy (Rainbow Brush)
+// Mod 10: Added a gridShadow so the canvas stands out against the background
 
 
 
@@ -17,7 +18,6 @@
 /*
 game.js for Perlenspiel 3.3.x
 Last revision: 2018-10-14 (BM)
-
 /* jshint browser : true, devel : true, esversion : 6, freeze : true */
 /* globals PS : true */
 
@@ -37,18 +37,18 @@ var drawing, active_color;
 PS.init = function( system, options ) {
 
 	// Establish grid dimensions
-	
+
 	PS.gridSize( 16, 16 );
-	
+
 	// Set background color to Perlenspiel logo gray
-	
+
 	PS.gridColor( 0x888888 );
-	
+
 	// Change status line color and text
 
 	PS.statusColor( PS.COLOR_WHITE );
 	PS.statusText( "Click to toggle drawing, space to clear" );
-	
+
 	// Preload click sound
 
 	PS.audioLoad( "fx_click" );
@@ -60,6 +60,8 @@ PS.init = function( system, options ) {
 	active_color = PS.unmakeRGB(0x888888, []);
 
 	PS.border(PS.ALL, PS.ALL, 0.5);
+
+	PS.gridShadow(true, 0x333333);
 };
 
 /*
@@ -77,7 +79,7 @@ PS.touch = function( x, y, data, options ) {
 	// NOTE: The default value of a bead's [data] is 0, which happens to be equal to PS.COLOR_BLACK
 
 	//PS.color( x, y, data ); // set color to current value of data
-	
+
 	// Decide what the next color should be.
 	// If the current value was black, change it to white.
 	// Otherwise change it to black.
@@ -93,9 +95,9 @@ PS.touch = function( x, y, data, options ) {
 
 	// NOTE: The above statement could be expressed more succinctly using JavaScript's ternary operator:
 	// let next = ( data === PS.COLOR_BLACK ) ? PS.COLOR_WHITE : PS.COLOR_BLACK;
-	
+
 	// Remember the newly-changed color by storing it in the bead's data.
-	
+
 	//PS.data( x, y, next );
 
 	// Play click sound.
@@ -129,17 +131,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.release() event handler:
 
 /*
-
 PS.release = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to inspect x/y parameters:
-
 	// PS.debug( "PS.release() @ " + x + ", " + y + "\n" );
-
 	// Add code here for when the mouse button/touch is released over a bead.
 };
-
 */
 
 /*
@@ -211,17 +208,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.exit() event handler:
 
 /*
-
 PS.exit = function( x, y, data, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to inspect x/y parameters:
-
 	// PS.debug( "PS.exit() @ " + x + ", " + y + "\n" );
-
 	// Add code here for when the mouse cursor/touch exits a bead.
 };
-
 */
 
 /*
@@ -234,17 +226,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.exitGrid() event handler:
 
 /*
-
 PS.exitGrid = function( options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to verify operation:
-
 	// PS.debug( "PS.exitGrid() called\n" );
-
 	// Add code here for when the mouse cursor/touch moves off the grid.
 };
-
 */
 
 /*
@@ -292,17 +279,12 @@ This function doesn't have to do anything. Any value returned is ignored.
 // UNCOMMENT the following code BLOCK to expose the PS.keyUp() event handler:
 
 /*
-
 PS.keyUp = function( key, shift, ctrl, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to inspect first three parameters:
-
 	// PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
-
 	// Add code here for when a key is released.
 };
-
 */
 
 /*
@@ -317,21 +299,16 @@ NOTE: Currently, only mouse wheel events are reported, and only when the mouse c
 // UNCOMMENT the following code BLOCK to expose the PS.input() event handler:
 
 /*
-
 PS.input = function( sensors, options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code lines to inspect first parameter:
-
 //	 var device = sensors.wheel; // check for scroll wheel
 //
 //	 if ( device ) {
 //	   PS.debug( "PS.input(): " + device + "\n" );
 //	 }
-
 	// Add code here for when an input event is detected.
 };
-
 */
 
 /*
@@ -345,15 +322,10 @@ NOTE: This event is generally needed only by applications utilizing networked te
 // UNCOMMENT the following code BLOCK to expose the PS.shutdown() event handler:
 
 /*
-
 PS.shutdown = function( options ) {
 	"use strict"; // Do not remove this directive!
-
 	// Uncomment the following code line to verify operation:
-
 	// PS.debug( "“Dave. My mind is going. I can feel it.”\n" );
-
 	// Add code here to tidy up when Perlenspiel is about to close.
 };
-
 */
