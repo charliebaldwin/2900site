@@ -173,10 +173,10 @@ PS.enter = function( x, y, data, options ) {
 
 		if (increase === 1) {
 			active_color[random_color] += intensity;
-			//PS.debug("Increased color " + random_color + " by " + intensity + "\n");
+			PS.debug("Increased color " + random_color + " by " + intensity + "\n");
 		} else {
 			active_color[random_color] -= intensity;
-			//PS.debug("Decreased color " + random_color + " by " + intensity + "\n");
+			PS.debug("Decreased color " + random_color + " by " + intensity + "\n");
 		}
 
 		// change grid color to match
@@ -260,7 +260,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	if (key === PS.KEY_SPACE) {
 		PS.color(PS.ALL, PS.ALL, 0xFFFFFF);
 		drawing = false;
-		//PS.debug("Cleared canvas \n");
+		PS.debug("Cleared canvas \n");
 	}
 };
 
