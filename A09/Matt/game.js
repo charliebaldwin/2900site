@@ -16,8 +16,7 @@ Last revision: 2018-10-14 (BM)
 // Mod 5: The status text color and grid background are changed to correspond with the last
 // clicked bead's glyph color and bead color, respectively, ie: red bead color, red grid background,
 // grey glyph color, grey status text.
-
-
+// Mod 6: Status text randomly changes after each click.
 
 /*
 PS.init( system, options )
@@ -42,7 +41,7 @@ PS.init = function( system, options ) {
 	// Change status line color and text
 
 	PS.statusColor( PS.COLOR_WHITE );
-	PS.statusText( "Touch a bead for Randomness" );
+	PS.statusText( "Touch a bead for Randomness!!" );
 	
 	// Preload click sound
 
@@ -76,6 +75,17 @@ PS.touch = function( x, y, data, options ) {
 	let gOpposite = 255 - r;
 	let bOpposite = 255 - r;
 	PS.glyphColor( x, y, rOpposite, gOpposite, bOpposite ); // Set glyph to be the opposite rgb of the bead its in
+
+	let textRand = PS.random(3); //generates a random number used for changing the status text
+	if(textRand == 1) {
+		PS.statusText( "WoW! MuCh RaNdOm" );
+	}
+	else if(textRand == 2) {
+		PS.statusText( "So ToUcH!" );
+	}
+	else {
+		PS.statusText( "VeRy CoLoR!" );
+	}
 	PS.statusColor( rOpposite, gOpposite, bOpposite ); //Set status text to same opposite bead color
 
 	// Play a random sound upon click.
