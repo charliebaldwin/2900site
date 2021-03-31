@@ -54,8 +54,9 @@ Any value returned is ignored.
 
 var ANT_GLYPH = "\u1F41C";
 var sequence;
-var RATE = 1;
+var RATE = 2;
 var steps = 0;
+var validInput;
 
 //var COLOR_SEQUENCE = [[PS.COLOR_RED, "L"], [PS.COLOR_WHITE, "L"], [PS.COLOR_GREEN, "R"], [PS.COLOR_BLUE, "R"]];
 var colorSequence = [];
@@ -95,12 +96,12 @@ PS.init = function( system, options ) {
 
             var currentChar = text.charAt(i);
 
-            PS.debug("Scanning character " + currentChar + "\n");
 
             if (currentChar != "R" && currentChar != "L") {
-                PS.timerStart(1, function() {
-                    PS.statusText("Invalid sequence, please reload (R & L only)");
-                });
+                PS.statusText("Invalid input, please reload (R & L only)");
+                validInput = false;
+            } else {
+                validInput = true;
             }
         }
         sequence = text;
@@ -120,7 +121,7 @@ PS.init = function( system, options ) {
         for (var i = 0; i < sequence.length; i += 1) {
             var color;
 
-            if (i === 0) {
+            if (i === 1) {
                 color = PS.COLOR_WHITE;
             } else {
                 color = PS.makeRGB(PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1);
@@ -143,8 +144,9 @@ PS.init = function( system, options ) {
             PS.debug(sequence.charAt(i) + "\n");
         }
 
-
-        PS.timerStart(RATE, step);
+        if (validInput) {
+            PS.timerStart(RATE, step);
+        }
     })
 
 
