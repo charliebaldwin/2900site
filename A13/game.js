@@ -21,18 +21,54 @@ Any value returned is ignored.
 [system : Object] = A JavaScript object containing engine and host platform information properties; see API documentation for details.
 [options : Object] = A JavaScript object with optional data properties; see API documentation for details.
 */
+var color, running, originX, originY;
+
+var RATE = 2;
+
+var BG_COLOR = PS.COLOR_WHITE;
+
+var timerID;
+
+var activeBeads;
 
 PS.init = function( system, options ) {
 	// Change this string to your team name
 	// Use only ALPHABETIC characters
 	// No numbers, spaces or punctuation!
 
-	const TEAM = "teamname";
+	const TEAM = "teamiris";
 
 	// Begin with essential setup
 	// Establish initial grid size
 
-	PS.gridSize( 8, 8 ); // or whatever size you want
+	PS.gridSize( 32, 32 ); // or whatever size you want
+
+	//PS.timerStart(20,);
+
+	PS.border(PS.ALL, PS.ALL, 0);
+
+	PS.data(PS.ALL, PS.ALL, false);
+
+	running = false;
+
+	PS.fade(PS.ALL, PS.ALL, 20);
+
+	PS.gridFade(100);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// Install additional initialization code
 	// here as needed
@@ -49,6 +85,8 @@ PS.init = function( system, options ) {
 		PS.dbEvent( TEAM, "startup", user );
 		PS.dbSave( TEAM, PS.CURRENT, { discard : true } );
 	}, { active : false } );
+
+
 };
 
 /*
@@ -69,6 +107,87 @@ PS.touch = function( x, y, data, options ) {
 
 	// Add code here for mouse clicks/touches
 	// over a bead.
+
+
+	if (!running) {
+		color = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
+		BG_COLOR = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
+
+		PS.gridColor(BG_COLOR);
+
+		PS.color(x, y, color);
+
+		PS.data(x, y, true);
+
+		activeBeads = [[x, y]];
+
+		running = true;
+
+		timerID = PS.timerStart(RATE, spread);
+
+
+	}
+
+};
+
+var spread = function () {
+
+	var length = activeBeads.length;
+
+	var tempArray = [];
+
+	for (var i = 0; i < length; i += 1) {
+
+		var x = activeBeads[i][0];
+		var y = activeBeads[i][1];
+
+		if (y > 0 && y < PS.gridSize().height - 1) {
+
+			// check up
+			if (PS.data(x, y - 1) === false) {
+				PS.color(x, y - 1, color);
+				PS.data(x, y - 1, true);
+
+				tempArray.push([x, y - 1]);
+			}
+			//check down
+			if (PS.data(x, y + 1) === false) {
+				PS.color(x, y + 1, color);
+				PS.data(x, y + 1, true);
+
+				tempArray.push([x, y + 1]);
+			}
+		}
+
+		if (x > 0 && x < PS.gridSize().width - 1) {
+			// check left
+			if (PS.data(x + 1, y) === false) {
+				PS.color(x + 1, y, color);
+				PS.data(x + 1, y, true);
+
+				tempArray.push([x + 1, y]);
+			}
+			// check right
+			if (PS.data(x - 1, y) === false) {
+				PS.color(x - 1, y, color);
+				PS.data(x - 1, y, true);
+
+				tempArray.push([x - 1, y]);
+			}
+		}
+
+		// reset color
+		PS.color(x, y, BG_COLOR);
+	}
+
+	activeBeads = tempArray;
+
+	if (activeBeads.length === 0) {
+		running = false;
+		PS.data(PS.ALL, PS.ALL, false);
+		PS.timerStop(timerID);
+	}
+
 };
 
 /*
