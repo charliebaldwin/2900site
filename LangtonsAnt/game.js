@@ -121,7 +121,7 @@ PS.init = function( system, options ) {
         for (var i = 0; i < sequence.length; i += 1) {
             var color;
 
-            if (i === 1) {
+            if (i === 0) {
                 color = PS.COLOR_WHITE;
             } else {
                 color = PS.makeRGB(PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1);
