@@ -117,7 +117,7 @@ PS.init = function( system, options ) {
         PS.glyph(8, 0, ":");
 
 
-        PS.debug(sequence.length + " seq. length\n");
+        //PS.debug(sequence.length + " seq. length\n");
         for (var i = 0; i < sequence.length; i += 1) {
             var color;
 
@@ -141,7 +141,7 @@ PS.init = function( system, options ) {
             }
 
             PS.glyphColor(i + 9, 0, PS.COLOR_BLACK);
-            PS.debug(sequence.charAt(i) + "\n");
+            //PS.debug(sequence.charAt(i) + "\n");
         }
 
         if (validInput) {
@@ -185,7 +185,7 @@ var step = function () {
             antX -= 1;
     }
 
-    PS.debug("Direction: " + direction + "\n");
+    //PS.debug("Direction: " + direction + "\n");
 
 
 
