@@ -23,13 +23,13 @@ Any value returned is ignored.
 */
 var color, running, originX, originY;
 
-var RATE = 2;
+var RATE = 2; //used for timer tick rate
 
 var BG_COLOR = PS.COLOR_WHITE;
 
-var timerID;
+var timerID; //var that contains global timer name
 
-var activeBeads;
+var activeBeads; //array of which beads are currently colored
 
 PS.init = function( system, options ) {
 	// Change this string to your team name
@@ -43,35 +43,20 @@ PS.init = function( system, options ) {
 
 	PS.gridSize( 32, 32 ); // or whatever size you want
 
-	//PS.timerStart(20,);
+	// Install additional initialization code
+	// here as needed
 
 	PS.border(PS.ALL, PS.ALL, 0);
 
-	PS.data(PS.ALL, PS.ALL, false);
+	PS.data(PS.ALL, PS.ALL, false); //Set all beads as false, meaning they arent being colored and are able to.
 
 	running = false;
 
 	PS.fade(PS.ALL, PS.ALL, 20);
 
+	PS.statusText("Digital Kaleidoscope");
+
 	PS.gridFade(100);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// Install additional initialization code
-	// here as needed
 
 	// PS.dbLogin() must be called at the END
 	// of the PS.init() event handler (as shown)
@@ -108,8 +93,9 @@ PS.touch = function( x, y, data, options ) {
 	// Add code here for mouse clicks/touches
 	// over a bead.
 
-
-	if (!running) {
+	// Does not support clicking grid corners. Checks global boolean to see if a color animation is in progress.
+	// Only can do 1 color change at a time.
+	if (!running && x != 0 && (x != PS.gridSize().width-1) && y != 0 && (y != PS.gridSize().height-1)) {
 		color = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
 		BG_COLOR = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
 
@@ -117,9 +103,9 @@ PS.touch = function( x, y, data, options ) {
 
 		PS.color(x, y, color);
 
-		PS.data(x, y, true);
+		PS.data(x, y, true); //Data true means the bead is colored.
 
-		activeBeads = [[x, y]];
+		activeBeads = [[x, y]]; // Sets current click as part of the active beads to be checked in spread()
 
 		running = true;
 
@@ -134,13 +120,14 @@ var spread = function () {
 
 	var length = activeBeads.length;
 
-	var tempArray = [];
+	var tempArray = []; //A temporary array of new beads that are colored from active beads
 
-	for (var i = 0; i < length; i += 1) {
+	for (var i = 0; i < length; i += 1) { //Goes through all currently active beads
 
 		var x = activeBeads[i][0];
 		var y = activeBeads[i][1];
 
+		//Checks if the bead isn't an edge bead in y direction
 		if (y > 0 && y < PS.gridSize().height - 1) {
 
 			// check up
@@ -158,7 +145,7 @@ var spread = function () {
 				tempArray.push([x, y + 1]);
 			}
 		}
-
+		//Checks if the bead isn't an edge bead in x direction
 		if (x > 0 && x < PS.gridSize().width - 1) {
 			// check left
 			if (PS.data(x + 1, y) === false) {
@@ -180,9 +167,9 @@ var spread = function () {
 		PS.color(x, y, BG_COLOR);
 	}
 
-	activeBeads = tempArray;
+	activeBeads = tempArray; //Wipe out old active beads, set tempArray as new activeBeads
 
-	if (activeBeads.length === 0) {
+	if (activeBeads.length === 0) { //Checks if board is done transitioning, if it is, allow more clicks.
 		running = false;
 		PS.data(PS.ALL, PS.ALL, false);
 		PS.timerStop(timerID);
