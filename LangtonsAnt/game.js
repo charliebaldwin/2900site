@@ -86,6 +86,8 @@ PS.init = function( system, options ) {
 	// the x and y parameters as needed.
 
 	PS.gridSize( 32, 32 );
+    PS.border(PS.ALL, PS.ALL, 0);
+    PS.gridShadow(true);
 
 	PS.glyph(16, 16, ANT_GLYPH);
 	antX = 16;
