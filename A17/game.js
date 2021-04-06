@@ -23,9 +23,12 @@ Any value returned is ignored.
 */
 var color, running, originX, originY;
 
-var RATE = 15; //used for timer tick rate
+var RATE = 2; //used for timer tick rate
 
-var BG_COLOR = PS.COLOR_WHITE;
+//var BG_COLOR = PS.COLOR_WHITE;
+
+var GRID_WIDTH = 32;
+var GRID_HEIGHT = 32;
 
 var timerID; //var that contains global timer name
 
@@ -34,6 +37,10 @@ var activeBeads; //array of which beads are currently colored
 var CLICK_MAX = 3;
 
 var origins;
+
+
+
+
 
 PS.init = function( system, options ) {
 	// Change this string to your team name
@@ -44,7 +51,7 @@ PS.init = function( system, options ) {
 	// Begin with essential setup
 	// Establish initial grid size
 
-	PS.gridSize( 32, 32 ); // or whatever size you want
+	PS.gridSize( GRID_WIDTH, GRID_HEIGHT); // or whatever size you want
 
 	// Install additional initialization code
 	// here as needed
@@ -113,17 +120,39 @@ PS.touch = function( x, y, data, options ) {
 		if(running==0) {
 			timerID = PS.timerStart(RATE, spread);
 		}
-		PS.data(x, y, true); //Data true means the bead is colored.
+	//	PS.data(x, y, true); //Data true means the bead is colored.
 		for(var p = 0; p < CLICK_MAX; p+=1) {
 			if (activeBeads[p].length == 0) {
 				color[p] = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
-				BG_COLOR = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
+				//BG_COLOR = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
 
-				PS.gridColor(BG_COLOR);
+				PS.gridColor(color[p]);
 				origins[p] = [x,y];
-				PS.debug("Origin values set are origin set " + p + " with values x:" + origins[p][0] + " and y:" + origins[p][1] + "\n");
+				//PS.debug("Origin values set are origin set " + p + " with values x:" + origins[p][0] + " and y:" + origins[p][1] + "\n");
+				//PS.color(x, y, color[p]);
+
+				activeBeads[p] = [];
+
 				PS.color(x, y, color[p]);
-				activeBeads[p] = [[x, y]]; // Sets current click as part of the active beads to be checked in spread()
+
+				if (x > 0) {
+					PS.color(x-1, y, color[p]);
+					activeBeads[p].push([x-1, y]);
+				}
+				if (x < GRID_WIDTH) {
+					PS.color(x+1, y, color[p]);
+					activeBeads[p].push([x+1, y]);
+				}
+				if (y > 0) {
+					PS.color(x, y-1, color[p]);
+					activeBeads[p].push([x, y-1]);
+				}
+				if (x < GRID_HEIGHT) {
+					PS.color(x, y+1, color[p]);
+					activeBeads[p].push([x, y+1]);
+				}
+
+				 // Sets current click as part of the active beads to be checked in spread()
 				break;
 			}
 		}
@@ -136,77 +165,115 @@ var spread = function () {
 	//PS.debug("Spread being called, MAX is " + CLICK_MAX + "\n");
 	//var length = activeBeads.length;
 
-	var tempArray = []; //A temporary array of new beads that are colored from active beads
+	 //A temporary array of new beads that are colored from active beads
+
 	//PS.debug("I got past tempArray call and activeBeads is " + activeBeads.length + "\n");
 	for (var z = 0; z < CLICK_MAX; z += 1) {
-		PS.debug("Looping first loop\n");
-		if(activeBeads[z].length!=0) {
-			PS.debug("I got through activeBeads length!=0\n");
+	// PS.debug("Spreading...\n");
+
+		if(activeBeads[z].length > 0) {
+
+			var tempArray = [];
+
+			//PS.debug("On array " + z + "\n");
 			for (var i = 0; i < activeBeads[z].length; i += 1) { //Goes through all currently active beads
 
 				var x = activeBeads[z][i][0];
 				var y = activeBeads[z][i][1];
-				PS.debug("I am activeBeads " + z + " of size " + activeBeads[z].length + "\n");
+
+//				PS.debug("I am activeBeads " + z + " of size " + activeBeads[z].length + "\n");
+
+
 				// skips checking up if bead is on top edge
 				if (y > 0) {
 					// check up
-					PS.debug("Origin values are origin " + z + " with values x:" + origins[z][0] + " and y:" + origins[z][1] + "\n");
-					if (origins[z][1] > y-1) {
-						PS.color(x, y - 1, color[z]);
-						//PS.data(x, y - 1, true);
-						tempArray.push([x, y - 1]);
+					if (origins[z][1] >= y) {
+						//if (!tempArray.includes([x, y - 1])) {
+						if (!checkTempArray(tempArray, [x, y-1])) {
+							PS.color(x, y - 1, color[z]);
+							tempArray.push([x, y - 1]);
+							//PS.debug("Adding (" + x + ", " + (y-1) + ") to tempArray [^]\n");
+							//PS.debug("Array coordinate added: " + tempArray[tempArray.length - 1] + "\n");
+						}
 					}
 				}
 
 				// skips checking down if bead is on bottom edge
-				if (y < PS.gridSize().height - 1) {
+				if (y < GRID_HEIGHT - 1) {
 					//check down
-					if (origins[z][1] < y+1) {
-						PS.color(x, y + 1, color[z]);
-						//PS.data(x, y + 1, true);
-						tempArray.push([x, y + 1]);
+					if (origins[z][1] <= y) {
+						//if (!tempArray.includes([x, y + 1])) {
+						if (!checkTempArray(tempArray, [x, y+1])) {
+							PS.color(x, y + 1, color[z]);
+							tempArray.push([x, y + 1]);
+							//PS.debug("Adding (" + x + ", " + (y+1) + ") to tempArray [v]\n");
+						}
 					}
 				}
 
-				// skips checking right if bead is on right edge
-				if (x < PS.gridSize().width - 1) {
-					// check right
-					if (origins[z][0] > x-1) {
-						PS.color(x + 1, y, color[z]);
-						//PS.data(x + 1, y, true);
-						tempArray.push([x + 1, y]);
-					}
-				}
-
-				//skips checking left if bead is on left edge
+				// skips checking left if bead is on right edge
 				if (x > 0) {
 					// check left
-					if (origins[z][0] < x+1) {
-						PS.color(x - 1, y, color[z]);
-						//PS.data(x - 1, y, true);
-						tempArray.push([x - 1, y]);
+					if (origins[z][0] >= x) {
+						//if (!tempArray.includes([x - 1, y])) {
+						if (!checkTempArray(tempArray, [x-1, y])) {
+							//PS.debug ("Attempting to add (" + (x-1) + ", " + y + ") to the array.\n");
+							PS.color(x - 1, y, color[z]);
+							tempArray.push([x - 1, y]);
+							//PS.debug("Adding (" + (x - 1) + ", " + y + ") to tempArray [<]\n");
+						}
+					}
+				}
+
+				//skips checking right if bead is on left edge
+				if (x < GRID_HEIGHT - 1) {
+					// check right
+					if (origins[z][0] <= x) {
+						//if (!tempArray.includes([x + 1, y])) {
+						if (!checkTempArray(tempArray, [x+1, y])) {
+							PS.color(x + 1, y, color[z]);
+							tempArray.push([x + 1, y]);
+							//PS.debug("Adding (" + (x + 1) + ", " + y + ") to tempArray [>]\n");
+						}
 					}
 				}
 
 				// reset color
-				PS.color(x, y, BG_COLOR);
+				PS.color(x, y, color[z]);
 			}
 
+			//PS.debug("tempArray Length: " + tempArray.length + "\n");
+		//	PS.debug("tempArray: " + tempArray + "\n");
+
 			activeBeads[z] = tempArray; //Wipe out old active beads, set tempArray as new activeBeads
+			tempArray = [];
+
 
 			if (activeBeads[z].length === 0) { //Checks if board is done transitioning, if it is, allow more clicks.
 				running -= 1;
 				origins[z] = [];
 				PS.data(PS.ALL, PS.ALL, false);
-				PS.audioPlay("fx_drip2", {volume: 0.1});
+
 				if (running == 0) {
 					PS.timerStop(timerID);
 				}
+			} else {
+				PS.audioPlay("fx_drip2", {volume: 0.1});
 			}
 		}
 	}
 	//PS.debug("End of spread\n");
 };
+
+var checkTempArray = function ( array, coordArray ) {
+	var tempArray = [];
+	for (var i = 0; i < array.length; i += 1) {
+		tempArray.push(array[i].toString());
+	}
+	var coordString = coordArray.toString();
+
+	return (tempArray.includes(coordString));
+}
 
 /*
 PS.release ( x, y, data, options )
@@ -293,6 +360,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	// PS.debug( "PS.keyDown(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
 	// Add code here for when a key is pressed.
+
 };
 
 /*
@@ -311,6 +379,8 @@ PS.keyUp = function( key, shift, ctrl, options ) {
 	// PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
 
 	// Add code here for when a key is released.
+
+	spread();
 };
 
 /*
