@@ -23,13 +23,17 @@ Any value returned is ignored.
 */
 var color, running, originX, originY;
 
-var RATE = 2; //used for timer tick rate
+var RATE = 15; //used for timer tick rate
 
 var BG_COLOR = PS.COLOR_WHITE;
 
 var timerID; //var that contains global timer name
 
 var activeBeads; //array of which beads are currently colored
+
+var CLICK_MAX = 3;
+
+var origins;
 
 PS.init = function( system, options ) {
 	// Change this string to your team name
@@ -49,13 +53,22 @@ PS.init = function( system, options ) {
 
 	PS.data(PS.ALL, PS.ALL, false); //Set all beads as false, meaning they arent being colored and are able to.
 
-	running = false;
+	running = 0;
 
 	PS.fade(PS.ALL, PS.ALL, 20);
 
 	PS.statusText("Digital Kaleidoscope");
 
 	PS.gridFade(100);
+
+	color = [];
+	activeBeads = [];
+	origins = [];
+	for(var d = 0; d < CLICK_MAX; d+=1) {
+		color.push([]);
+		activeBeads.push([]);
+		origins.push([]);
+	}
 
 	// PS.dbLogin() must be called at the END
 	// of the PS.init() event handler (as shown)
@@ -96,97 +109,103 @@ PS.touch = function( x, y, data, options ) {
 
 	// Does not support clicking grid corners. Checks global boolean to see if a color animation is in progress.
 	// Only can do 1 color change at a time.
-	if (!running) {
-		color = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
-		BG_COLOR = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
-
-		PS.gridColor(BG_COLOR);
-
-		PS.color(x, y, color);
-
+	if (running < 3) {
+		if(running==0) {
+			timerID = PS.timerStart(RATE, spread);
+		}
 		PS.data(x, y, true); //Data true means the bead is colored.
+		for(var p = 0; p < CLICK_MAX; p+=1) {
+			if (activeBeads[p].length == 0) {
+				color[p] = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
+				BG_COLOR = [PS.random(256) - 1, PS.random(256) - 1, PS.random(256) - 1];
 
-		activeBeads = [[x, y]]; // Sets current click as part of the active beads to be checked in spread()
-
-		running = true;
-
-		timerID = PS.timerStart(RATE, spread);
-
-
+				PS.gridColor(BG_COLOR);
+				origins[p] = [x,y];
+				PS.debug("Origin values set are origin set " + p + " with values x:" + origins[p][0] + " and y:" + origins[p][1] + "\n");
+				PS.color(x, y, color[p]);
+				activeBeads[p] = [[x, y]]; // Sets current click as part of the active beads to be checked in spread()
+				break;
+			}
+		}
+		running += 1;
 	}
 
 };
 
 var spread = function () {
-
-	var length = activeBeads.length;
+	//PS.debug("Spread being called, MAX is " + CLICK_MAX + "\n");
+	//var length = activeBeads.length;
 
 	var tempArray = []; //A temporary array of new beads that are colored from active beads
+	//PS.debug("I got past tempArray call and activeBeads is " + activeBeads.length + "\n");
+	for (var z = 0; z < CLICK_MAX; z += 1) {
+		PS.debug("Looping first loop\n");
+		if(activeBeads[z].length!=0) {
+			PS.debug("I got through activeBeads length!=0\n");
+			for (var i = 0; i < activeBeads[z].length; i += 1) { //Goes through all currently active beads
 
-	PS.audioPlay("fx_drip2", {volume: 0.1});
+				var x = activeBeads[z][i][0];
+				var y = activeBeads[z][i][1];
+				PS.debug("I am activeBeads " + z + " of size " + activeBeads[z].length + "\n");
+				// skips checking up if bead is on top edge
+				if (y > 0) {
+					// check up
+					PS.debug("Origin values are origin " + z + " with values x:" + origins[z][0] + " and y:" + origins[z][1] + "\n");
+					if (origins[z][1] > y-1) {
+						PS.color(x, y - 1, color[z]);
+						//PS.data(x, y - 1, true);
+						tempArray.push([x, y - 1]);
+					}
+				}
 
-	for (var i = 0; i < length; i += 1) { //Goes through all currently active beads
+				// skips checking down if bead is on bottom edge
+				if (y < PS.gridSize().height - 1) {
+					//check down
+					if (origins[z][1] < y+1) {
+						PS.color(x, y + 1, color[z]);
+						//PS.data(x, y + 1, true);
+						tempArray.push([x, y + 1]);
+					}
+				}
 
-		var x = activeBeads[i][0];
-		var y = activeBeads[i][1];
+				// skips checking right if bead is on right edge
+				if (x < PS.gridSize().width - 1) {
+					// check right
+					if (origins[z][0] > x-1) {
+						PS.color(x + 1, y, color[z]);
+						//PS.data(x + 1, y, true);
+						tempArray.push([x + 1, y]);
+					}
+				}
 
+				//skips checking left if bead is on left edge
+				if (x > 0) {
+					// check left
+					if (origins[z][0] < x+1) {
+						PS.color(x - 1, y, color[z]);
+						//PS.data(x - 1, y, true);
+						tempArray.push([x - 1, y]);
+					}
+				}
 
-		// skips checking up if bead is on top edge
-		if (y > 0) {
-			// check up
-			if (PS.data(x, y - 1) === false) {
-				PS.color(x, y - 1, color);
-				PS.data(x, y - 1, true);
+				// reset color
+				PS.color(x, y, BG_COLOR);
+			}
 
-				tempArray.push([x, y - 1]);
+			activeBeads[z] = tempArray; //Wipe out old active beads, set tempArray as new activeBeads
+
+			if (activeBeads[z].length === 0) { //Checks if board is done transitioning, if it is, allow more clicks.
+				running -= 1;
+				origins[z] = [];
+				PS.data(PS.ALL, PS.ALL, false);
+				PS.audioPlay("fx_drip2", {volume: 0.1});
+				if (running == 0) {
+					PS.timerStop(timerID);
+				}
 			}
 		}
-
-		// skips checking down if bead is on bottom edge
-		if (y < PS.gridSize().height - 1) {
-			//check down
-			if (PS.data(x, y + 1) === false) {
-				PS.color(x, y + 1, color);
-				PS.data(x, y + 1, true);
-
-				tempArray.push([x, y + 1]);
-			}
-		}
-
-		// skips checking right if bead is on right edge
-		if (x < PS.gridSize().width - 1) {
-			// check right
-			if (PS.data(x + 1, y) === false) {
-				PS.color(x + 1, y, color);
-				PS.data(x + 1, y, true);
-
-				tempArray.push([x + 1, y]);
-			}
-		}
-
-		//skips checking left if bead is on left edge
-		if (x > 0) {
-			// check left
-			if (PS.data(x - 1, y) === false) {
-				PS.color(x - 1, y, color);
-				PS.data(x - 1, y, true);
-
-				tempArray.push([x - 1, y]);
-			}
-		}
-
-		// reset color
-		PS.color(x, y, BG_COLOR);
 	}
-
-	activeBeads = tempArray; //Wipe out old active beads, set tempArray as new activeBeads
-
-	if (activeBeads.length === 0) { //Checks if board is done transitioning, if it is, allow more clicks.
-		running = false;
-		PS.data(PS.ALL, PS.ALL, false);
-		PS.timerStop(timerID);
-	}
-
+	//PS.debug("End of spread\n");
 };
 
 /*
