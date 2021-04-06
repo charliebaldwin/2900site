@@ -34,7 +34,7 @@ var timerID; //var that contains global timer name
 
 var activeBeads; //array of which beads are currently colored
 
-var CLICK_MAX = 3;
+var CLICK_MAX = 5;
 
 var origins;
 
