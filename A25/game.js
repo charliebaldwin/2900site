@@ -42,16 +42,18 @@ If you don't use JSHint (or are using it with a configuration file), you can saf
 
 var player;
 
+var coinsCollected = 0;
+
 var sliding = false;
 var slideTimer;
 var slideDirection;
 
 var SLIDE_SPEED = 3;
 
-// 0 for bg, 1 for wall, 2 for death, 3 for goal, 4 for up, 5 for right, 6 for down, 7 for left
+// 0 for bg, 1 for wall, 2 for death, 3 for goal, 4 for up, 5 for right, 6 for down, 7 for left, 8 for coin
 var MAP = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 0],
-	[0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 5, 0, 8, 0, 0, 3, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 7, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -60,9 +62,9 @@ var MAP = [
 	[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+	[1, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0]
 ];
@@ -88,6 +90,8 @@ var GOAL_COLOR = 0x00ff00;
 var ARROW_BG_COLOR = 0x285073;
 var ARROW_COLOR = 0xffffff;
 var PLAYER_COLOR = 0x734d28;
+var COIN_COLOR = 0xffee00;
+var COIN_GLYPH_COLOR = 0xa3990b;
 
 /*
 PS.init( system, options )
@@ -115,7 +119,7 @@ PS.init = function( system, options ) {
 	// Uncomment the following code line and change
 	// the x and y parameters as needed.
 
-	PS.statusText("Icescape");
+	PS.statusText("Icescape! (coins collected: " + coinsCollected + ")");
 
 	PS.borderColor(PS.ALL, PS.ALL, BG_COLOR);
 
@@ -223,6 +227,14 @@ PS.init = function( system, options ) {
 					PS.radius(x, y, 10);
 					PS.data(x, y, 4);
 					break;
+				case 8: // coin
+					PS.color(x, y, COIN_COLOR);
+					PS.glyph(x, y, "$");
+					PS.glyphColor(x, y, COIN_GLYPH_COLOR);
+					PS.radius(x, y, 50);
+					PS.borderColor(x, y, COIN_GLYPH_COLOR);
+					PS.border(x, y, 2);
+
 			}
 		}
 	}
@@ -315,6 +327,18 @@ var slide = function() {
 		sliding = false;
 		slideDirection = 0;
 		PS.glyphAlpha(x, y, 255);
+	}
+
+	// coin
+	if (PS.color(x, y) === COIN_COLOR) {
+		PS.color(x, y, BG_COLOR);
+		PS.border(x, y, 0);
+		PS.radius(x, y, 0);
+		PS.glyph(x, y, "");
+		coinsCollected += 1;
+		PS.statusText("Icescape! (coins collected: " + coinsCollected + ")");
+
+
 	}
 
 	switch (slideDirection) {
