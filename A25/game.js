@@ -127,6 +127,8 @@ PS.init = function( system, options ) {
 	PS.gridSize( GRID_WIDTH, GRID_HEIGHT );
 
 
+
+
 	player = PS.spriteSolid(1, 1);
 	PS.spriteSolidColor(player, PLAYER_COLOR);
 	PS.spriteMove(player, INITIAL_X, INITIAL_Y);
@@ -139,25 +141,34 @@ PS.init = function( system, options ) {
 	PS.gridShadow(true, 0xffffff);
 	PS.alpha(INITIAL_X, INITIAL_Y, 255);
 
+	// remove grid borders from sprite layer
+	PS.gridPlane(5);
+	PS.border(PS.ALL, PS.ALL, 0);
+	PS.gridPlane(0);
+
+	// create control button area
+	// PS.color (PS.ALL, GRID_HEIGHT, 0xffffff);
+	// PS.color (PS.ALL, GRID_HEIGHT + 1, 0xffffff);
+	// PS.color (PS.ALL, GRID_HEIGHT + 2, 0xffffff);
+	// PS.border(PS.ALL, GRID_HEIGHT, {top: 2});
+
 	for (var x = 0; x < GRID_WIDTH; x += 1) {
 		for (var y = 0; y < GRID_HEIGHT; y += 1) {
-			var newColor = PS.unmakeRGB(BG_COLOR, {});
+			var newColor = PS.unmakeRGB(BG_COLOR, []);
 
-			newColor.r += PS.random(30);
-			newColor.g += PS.random(20);
-			newColor.b -= PS.random(25);
+			newColor[0] += PS.random(10);
+			newColor[1] += PS.random(10);
+			newColor[2] -= PS.random(10);
 			//PS.debug("new color: " + newColor.r + ", " + newColor.g + ", " + newColor.b + "\n");
 
 			PS.color(x, y, newColor);
 		}
 	}
 
-	PS.gridPlane(5);
-	PS.border(PS.ALL, PS.ALL, 0);
-	PS.gridPlane(0);
 
 
 
+	// set up game objects on the grid
 	for (var y = 0; y < GRID_HEIGHT; y += 1) {
 		for (var x = 0; x < GRID_WIDTH; x += 1) {
 			switch (MAP[y][x]) {
@@ -231,7 +242,7 @@ PS.init = function( system, options ) {
 	// using ONLY alphabetic characters (a-z).
 	// No numbers, spaces, punctuation or special characters!
 
-	const TEAM = "teamiris";
+	const TEAM = "iris";
 
 	// This code should be the last thing
 	// called by your PS.init() handler.
