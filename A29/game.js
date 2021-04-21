@@ -52,7 +52,7 @@ var SLIDE_SPEED = 3;
 
 var levels = [];
 var currentLevel = 0;
-var levelFiles = ["map1.gif", "map2.gif", "map3.gif", "map4.gif", "map6.gif", "map7.gif", "map8.gif", "map9.gif"];
+var levelFiles = ["map1.gif", "map2.gif", "map3.gif", "map4.gif", "map5.gif", "map6.gif", "map7.gif", "map8.gif"];
 var levelsUnlocked = [];
 var loadingLevel = 0;
 
