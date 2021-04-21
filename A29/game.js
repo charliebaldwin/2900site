@@ -72,18 +72,25 @@ var DOWN_GLYPH = "⮟";
 var LEFT_GLYPH = "⮜";
 var DEATH_GLYPH = "☠";
 var GOAL_GLYPH = "⚑";
+var PORTAL_GLYPH = "◎";
 
 // TILE COLORS
 var BG_COLOR = PS.makeRGB(94, 223, 255);
 var WALL_COLOR = 0xdbf1ff;
 var WALL_BORDER_COLOR = 0x3a9cda;
-var DEATH_COLOR = 0xff0000;
-var GOAL_COLOR = 0x00ff00;
+var DEATH_COLOR = 0xa50c3e;
+var DEATH_GLYPH_COLOR = 0xff6b83;
+var GOAL_COLOR = 0x008241;
+var GOAL_GLYPH_COLOR = 0x44ffa1;
 var ARROW_BG_COLOR = 0x285073;
 var ARROW_COLOR = 0xffffff;
 var PLAYER_COLOR = 0x734d28;
-var COIN_COLOR = 0xffee00;
-var COIN_GLYPH_COLOR = 0xa3990b;
+var COIN_COLOR = 0xfcce43;
+var COIN_GLYPH_COLOR = 0x553a0e;
+var PORTAL_COLOR_1 = 0xff671c;
+var PORTAL_COLOR_2 = 0xf553cd;
+var PORTAL_COLOR_3 = 0x5dd03e;
+var PORTAL_GLYPH_COLOR = 0xffffff;
 
 // IMAGE PIXEL COLORS FOR MAPMAKING
 var BG_PIXEL = 0x000000;
@@ -170,7 +177,9 @@ PS.init = function( system, options ) {
 PS.touch = function( x, y, data, options ) {
 	var levelInt = parseInt(PS.glyph(x, y))-48;
 	if ((levelInt >= 1 && levelInt <= levelFiles.length)){
-		if (levelsUnlocked[levelInt - 1]) {
+
+		//if (levelsUnlocked[levelInt - 1]) {    // REAL VERSION
+		if (true) {                              // DEBUG VERSION
 			currentLevel = parseInt(PS.glyph(x, y)) - 49;
 			drawLevel(levels[currentLevel]);
 			PS.audioPlay("fx_ding", {volume: 0.3});
@@ -316,18 +325,19 @@ var drawLevel = function(map) {
 				case 2:  // death
 					PS.color(x, y, DEATH_COLOR);
 					PS.glyph(x, y, DEATH_GLYPH);
-					PS.glyphColor(x, y, ARROW_COLOR);
+					PS.glyphColor(x, y, DEATH_GLYPH_COLOR);
 					PS.radius(x, y, 10);
 					PS.border(x, y, 2);
-					PS.borderColor(x, y, ARROW_COLOR)
+					PS.borderColor(x, y, DEATH_GLYPH_COLOR)
 					break;
 
 				case 3:  // goal
 					PS.color(x, y, GOAL_COLOR);
 					PS.glyph(x, y, GOAL_GLYPH);
+					PS.glyphColor(x, y, GOAL_GLYPH_COLOR);
 					PS.radius(x, y, 10);
 					PS.border(x, y, 2);
-					PS.borderColor(x, y, 0x000000);
+					PS.borderColor(x, y, GOAL_GLYPH_COLOR);
 					break;
 
 				case 4:  // up arrow
@@ -380,6 +390,13 @@ var drawLevel = function(map) {
 					PS.alpha(x, y, 0);
 					PS.border(x, y, 0);
 					break;
+
+				case 10: // portal 1
+					PS.color(x, y, PORTAL_COLOR_1);
+					PS.glyph(x, y, PORTAL_GLYPH);
+					PS.glyphColor(x, y, PORTAL_GLYPH_COLOR);
+					PS.radius(x, y, 50);
+
 			}
 		}
 	}
