@@ -43,31 +43,13 @@ If you don't use JSHint (or are using it with a configuration file), you can saf
 var player;
 
 var coinsCollected = 0;
+var coinCache = 0;
 
 var sliding = false;
 var slideTimer;
 var slideDirection;
 
 var SLIDE_SPEED = 3;
-
-// 0 for bg, 1 for wall, 2 for death, 3 for goal, 4 for up, 5 for right, 6 for down, 7 for left, 8 for coin, 9 for player
-// var MAP = [
-// 	[0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1, 0],
-// 	[0, 0, 0, 0, 0, 0, 5, 0, 8, 0, 0, 3, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 7, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 0, 4, 0, 7, 0, 0, 0, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[1, 9, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-// 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0]
-// ];
 
 var levels = [];
 var currentLevel = 0;
@@ -117,6 +99,9 @@ var UP_PIXEL = 0x0000ff;
 var RIGHT_PIXEL = 0x0066ff;
 var DOWN_PIXEL = 0x00aaff;
 var LEFT_PIXEL = 0x00ddff;
+var PORTAL_PIXEL_1 = 0xff8800;
+var PORTAL_PIXEL_2 = 0x5500ff;
+var PORTAL_PIXEL_3 = 0x00ffff;
 
 /*
 PS.init( system, options )
@@ -474,7 +459,14 @@ var slide = function() {
 		sliding = false;
 		slideDirection = 0;
 		PS.glyphAlpha(x, y, 255);
-		coinsCollected -= 2;
+		coinsCollected -= coinCache;
+		coinCache = 0;
+		if(coinsCollected <= 2) {
+			coinsCollected = 0;
+		}
+		else {
+			coinsCollected -= 2;
+		}
 		updateCoins();
 	}
 
@@ -486,6 +478,7 @@ var slide = function() {
 		PS.glyph(x, y, "");
 		PS.audioPlay("fx_coin3", {volume: 0.3});
 		coinsCollected += 1;
+		coinCache +=1;
 		updateCoins();
 	}
 
@@ -497,6 +490,7 @@ var slide = function() {
 		slideDirection = 0;
 		PS.glyphAlpha(x, y, 255);
 		levelsUnlocked[currentLevel] = true;
+		coinCache = 0;
 
 		if (currentLevel < levels.length - 1) {
 			currentLevel += 1;
