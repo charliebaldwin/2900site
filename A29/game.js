@@ -176,8 +176,8 @@ PS.touch = function( x, y, data, options ) {
 		var levelInt = PS.data(x, y);
 		if ((levelInt <= levelFiles.length)) {
 
-			if (levelsUnlocked[levelInt]) {    // REAL VERSION
-			//if (true) {                              // DEBUG VERSION
+			//if (levelsUnlocked[levelInt]) {    // REAL VERSION
+			if (true) {                              // DEBUG VERSION
 				currentLevel = levelInt;
 				drawLevel();
 
