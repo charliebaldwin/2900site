@@ -52,7 +52,7 @@ var SLIDE_SPEED = 3;
 
 var levels = [];
 var currentLevel = 0;
-var levelFiles = ["map1.gif", "map2.gif", "map3.gif", "map4.gif", "map5.gif", "map6.gif", "map7.gif", "map8.gif"];
+var levelFiles = ["map1.gif", "map2.gif", "map3.gif", "map4.gif", "map5.gif", "map6.gif", "map7.gif", "map8.gif", "map9.gif", "map10.gif", "map11.gif", "map12.gif", "map13.gif"];
 var levelsUnlocked = [];
 var loadingLevel = 0;
 
@@ -89,7 +89,6 @@ var COIN_COLOR = 0xfcce43;
 var COIN_GLYPH_COLOR = 0x553a0e;
 var PORTAL_COLOR_1 = 0xff671c;
 var PORTAL_COLOR_2 = 0xf553cd;
-var PORTAL_COLOR_3 = 0x5dd03e;
 var PORTAL_GLYPH_COLOR = 0xffffff;
 
 // IMAGE PIXEL COLORS FOR MAPMAKING
@@ -105,7 +104,6 @@ var DOWN_PIXEL = 0x00aaff;
 var LEFT_PIXEL = 0x00ddff;
 var PORTAL_PIXEL_1 = 0xff8800;
 var PORTAL_PIXEL_2 = 0x5500ff;
-var PORTAL_PIXEL_3 = 0x00ffff;
 
 
 
@@ -123,6 +121,7 @@ PS.init = function( system, options ) {
 	PS.audioLoad("fx_coin3");
 	PS.audioLoad("fx_uhoh");
 	PS.audioLoad("fx_tada");
+	PS.audioLoad("fx_powerup8");
 
 	PS.gridSize( GRID_WIDTH, GRID_HEIGHT );
 
@@ -175,18 +174,40 @@ PS.init = function( system, options ) {
 
 
 PS.touch = function( x, y, data, options ) {
-	var levelInt = parseInt(PS.glyph(x, y))-48;
-	if ((levelInt >= 1 && levelInt <= levelFiles.length)){
 
-		//if (levelsUnlocked[levelInt - 1]) {    // REAL VERSION
-		if (true) {                              // DEBUG VERSION
-			currentLevel = parseInt(PS.glyph(x, y)) - 49;
-			drawLevel(levels[currentLevel]);
-			PS.audioPlay("fx_ding", {volume: 0.3});
-		} else {
-			PS.audioPlay("fx_uhoh", {volume: 0.5});
+	if (state === 0) {
+		var levelInt = PS.data(x, y);
+		if ((levelInt <= levelFiles.length)) {
+
+			//if (levelsUnlocked[levelInt - 1]) {    // REAL VERSION
+			if (true) {                              // DEBUG VERSION
+				currentLevel = levelInt;
+				drawLevel();
+
+				PS.audioPlay("fx_ding", {volume: 0.3});
+			} else {
+				PS.audioPlay("fx_uhoh", {volume: 0.5});
+			}
+		}
+	} else {
+		if (PS.glyph(x, y) === 11119 && !sliding) {  // RESTART
+
+			coinsCollected -= coinCache;
+			slideDirection = 0;
+			drawLevel();
+			var pos = PS.spriteMove(player);
+			PS.debug("CURRENT POS: " + pos.x + ", " + pos.y + "\n");
+			PS.debug("SHOWING: " + PS.spriteShow(player) + "\n");
+
+			sliding = false;
+
+		} else if (PS.glyph(x, y) === 11176 && !sliding) {  // LEVEL SELECT
+
+			coinsCollected = 0;
+			drawLevelSelect();
 		}
 	}
+
 };
 
 
@@ -241,9 +262,6 @@ var decodeImage = function(mapImage) {
 				case PORTAL_PIXEL_2:
 					array[y].push(11);
 					break;
-				case PORTAL_PIXEL_3:
-					array[y].push(12);
-					break;
 			}
 
 			i += 1;
@@ -261,18 +279,48 @@ var decodeImage = function(mapImage) {
 }
 
 
-var drawLevel = function(map) {
+var drawLevel = function() {
+
+
+	if (delayTimer !== "") {
+		PS.timerStop(delayTimer);
+		delayTimer = "";
+	}
+
+	var map = levels[currentLevel];
+
+	coinCache = 0;
+
 
 	state = 1;
+	sliding = false;
 
 	PS.statusText("Icescape! (coins collected: " + coinsCollected + ")");
 
 	levelHeight = map.length;
-	levelWidth = map[0].length;
+	levelWidth = map[0].length + 1;
+
+
 
 	PS.gridSize(levelWidth, levelHeight);
 
 	PS.gridColor(BG_COLOR);
+
+	PS.border(levelWidth-1, PS.ALL, 0);
+	PS.color(levelWidth-1, PS.ALL, 0x3a3a3a);
+
+	PS.border(levelWidth-1, 0, 3);
+	PS.color(levelWidth-1, 0, 0xc9c9c9);
+	PS.glyph(levelWidth-1, 0, "⭯");
+	PS.border(levelWidth-1, 1, 3);
+	PS.color(levelWidth-1, 1, 0xc9c9c9);
+	PS.glyph(levelWidth-1, 1, "⮨");
+
+
+	var portalCoord1_1 = 0;
+	var portalCoord1_2 = 0;
+	var portalCoord2_1 = 0;
+	var portalCoord2_2 = 0;
 
 	for (var y = 0; y < levelHeight; y += 1) {
 		for (var x = 0; x < levelWidth; x += 1) {
@@ -397,31 +445,80 @@ var drawLevel = function(map) {
 					PS.glyphColor(x, y, PORTAL_GLYPH_COLOR);
 					PS.radius(x, y, 50);
 
+					if (portalCoord1_1 === 0) {
+						portalCoord1_1 = [x, y];
+					} else {
+						portalCoord1_2 = [x, y];
+					}
+					break;
+
+				case 11: // portal 2
+					PS.color(x, y, PORTAL_COLOR_2);
+					PS.glyph(x, y, PORTAL_GLYPH);
+					PS.glyphColor(x, y, PORTAL_GLYPH_COLOR);
+					PS.radius(x, y, 50);
+
+					if (portalCoord2_1 === 0) {
+						portalCoord2_1 = [x, y];
+					} else {
+						portalCoord2_2 = [x, y];
+					}
+					break;
+
 			}
 		}
 	}
+
+	if (portalCoord1_1 !== 0) {
+		var x1 = portalCoord1_1[0];
+		var y1 = portalCoord1_1[1];
+		var x2 = portalCoord1_2[0];
+		var y2 = portalCoord1_2[1];
+
+		PS.data(x1, y1, portalCoord1_2);
+		PS.data(x2, y2, portalCoord1_1);
+	}
+	if (portalCoord2_1 !== 0) {
+		var x1 = portalCoord2_1[0];
+		var y1 = portalCoord2_1[1];
+		var x2 = portalCoord2_2[0];
+		var y2 = portalCoord2_2[1];
+
+		PS.data(x1, y1, portalCoord2_2);
+		PS.data(x2, y2, portalCoord2_1);
+	}
+
+	sliding = false;
 }
 
 
 var drawLevelSelect = function() {
 
+	state = 0;
+
 	if (delayTimer != "") {
 		PS.timerStop(delayTimer);
+		delayTimer = "";
+
 	}
 
 	PS.statusText("Select a level:");
 	PS.gridSize(levelFiles.length, 1);
-	for (var l = 0; l < levelFiles.length; l += 1) {
-		PS.glyph(l, 0, (l+1).toString());
-		PS.glyphColor(l, 0, 0x000000);
-		PS.glyphAlpha(l, 0, PS.OPAQUE);
 
-		if (levelsUnlocked[l]) {
-			PS.color(l, 0, 0xffffff);
-		} else {
-			PS.color(l, 0, 0x444444);
-		}
-		PS.alpha(l, 0, 255);
+	for (var l = 0; l < levelFiles.length; l += 1) {
+
+			PS.glyph(l, 0, (l+1).toString(16));
+			PS.glyphColor(l, 0, 0x000000);
+			PS.glyphAlpha(l, 0, PS.OPAQUE);
+			PS.data(l, 0, l);
+
+			if (levelsUnlocked[l]) {
+				PS.color(l, 0, 0xffffff);
+			} else {
+				PS.color(l, 0, 0x444444);
+			}
+			PS.alpha(l, 0, 255);
+
 	}
 
 	PS.gridPlane(0);
@@ -438,7 +535,6 @@ var updateCoins = function() {
 
 
 var slide = function() { // slide in the specified direction until you hit a wall
-
 	sliding = true;
 
 	PS.glyphAlpha(PS.ALL, PS.ALL, 255);	// reset the glyph alphas to opaque, to undo the transparency that we're doing when the player moves over a bead with a glyph
@@ -450,14 +546,14 @@ var slide = function() { // slide in the specified direction until you hit a wal
 
 
 	// arrow block
-	if (PS.data(x, y) !== 0) {
+	if (PS.data(x, y) >= 1 && PS.data(x, y) <= 4) {
 		slideDirection = PS.data(x, y);
 		PS.audioPlay("fx_swoosh", {volume: 0.3});
 	}
 
 	// death block
 	if (PS.color(x, y) === DEATH_COLOR) {
-		drawLevel(levels[currentLevel]);
+
 		PS.audioPlay("fx_blast2", {volume: 0.2});
 		sliding = false;
 		slideDirection = 0;
@@ -470,6 +566,7 @@ var slide = function() { // slide in the specified direction until you hit a wal
 		else {
 			coinsCollected -= 2;
 		}
+		delayTimer = PS.timerStart(40, drawLevel);
 		updateCoins();
 	}
 
@@ -497,13 +594,17 @@ var slide = function() { // slide in the specified direction until you hit a wal
 
 		if (currentLevel < levels.length - 1) {
 			currentLevel += 1;
-			drawLevel(levels[currentLevel]);
+			delayTimer = PS.timerStart(40, drawLevel);
 		} else {
-			PS.timerStop(slideTimer);
 			winGame();
-			return;
+
 		}
+		sliding = false;
+		PS.timerStop(slideTimer);
+		return;
 	}
+
+
 
 	switch (slideDirection) {
 		case 1: // up
@@ -536,6 +637,34 @@ var slide = function() { // slide in the specified direction until you hit a wal
 			break;
 	}
 
+	// portals
+	if (PS.color(x, y) === PORTAL_COLOR_1 || PS.color(x, y) === PORTAL_COLOR_2) {
+
+		PS.audioPlay("fx_powerup8", {volume: 0.3});
+		PS.glyphAlpha(x, y, 255);
+
+		var nx = PS.data(x, y)[0];
+		var ny = PS.data(x, y)[1];
+
+		switch(slideDirection) {
+			case 1:
+				ny -= 1;
+				break;
+			case 2:
+				nx += 1;
+				break;
+			case 3:
+				ny += 1;
+				break;
+			case 4:
+				nx -= 1;
+				break;
+		}
+
+		PS.spriteMove(player, nx, ny);
+		sliding = true;
+	}
+
 	if (!sliding) {
 		PS.timerStop(slideTimer);
 	}
@@ -557,9 +686,6 @@ var winGame = function () {
 	PS.statusText("You escaped the icy cave! Total coins: " + coinsCollected);
 	PS.audioPlay("fx_tada");
 	delayTimer = PS.timerStart(180, drawLevelSelect);
-
-	//drawLevelSelect();
-	state = 0;
 }
 
 
