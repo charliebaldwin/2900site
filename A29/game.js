@@ -140,7 +140,7 @@ PS.init = function( system, options ) {
 	// remove grid borders from sprite layer
 	PS.gridPlane(5);
 	PS.border(PS.ALL, PS.ALL, 0);
-	PS.gridPlane(0);
+	PS.gridPlane(0); //e
 
 
 	if (levelsUnlocked.length === 0) {
