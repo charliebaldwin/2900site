@@ -703,7 +703,7 @@ PS.exitGrid = function( options ) {};
 
 PS.keyDown = function( key, shift, ctrl, options ) {
 
- 	if (!sliding && state === 1) {
+ 	if (!sliding && state === 1 && delayTimer === "") {
 		switch (key) {
 			case PS.KEY_ARROW_UP:
 			case 119:
