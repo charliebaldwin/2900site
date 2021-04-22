@@ -140,7 +140,7 @@ PS.init = function( system, options ) {
 	// remove grid borders from sprite layer
 	PS.gridPlane(5);
 	PS.border(PS.ALL, PS.ALL, 0);
-	PS.gridPlane(0); //e
+	PS.gridPlane(0);
 
 
 	if (levelsUnlocked.length === 0) {
@@ -502,7 +502,7 @@ var drawLevelSelect = function() {
 
 	}
 
-	PS.statusText("Select a level:");
+	PS.statusText("Icescape! Select a level:");
 	PS.gridSize(levelFiles.length, 1);
 
 	for (var l = 0; l < levelFiles.length; l += 1) {
