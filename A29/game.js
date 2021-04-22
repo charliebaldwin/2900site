@@ -42,6 +42,7 @@ If you don't use JSHint (or are using it with a configuration file), you can saf
 
 var player;
 
+
 var coinsCollected = 0;
 var coinCache = 0;
 
@@ -122,6 +123,7 @@ PS.init = function( system, options ) {
 	PS.audioLoad("fx_uhoh");
 	PS.audioLoad("fx_tada");
 	PS.audioLoad("fx_powerup8");
+	PS.audioLoad("fx_click");
 
 	PS.gridSize( GRID_WIDTH, GRID_HEIGHT );
 
@@ -140,11 +142,6 @@ PS.init = function( system, options ) {
 	PS.border(PS.ALL, PS.ALL, 0);
 	PS.gridPlane(0);
 
-	// create control button area
-	// PS.color (PS.ALL, GRID_HEIGHT, 0xffffff);
-	// PS.color (PS.ALL, GRID_HEIGHT + 1, 0xffffff);
-	// PS.color (PS.ALL, GRID_HEIGHT + 2, 0xffffff);
-	// PS.border(PS.ALL, GRID_HEIGHT, {top: 2});
 
 	if (levelsUnlocked.length === 0) {
 		levelsUnlocked.push(true);
@@ -179,8 +176,8 @@ PS.touch = function( x, y, data, options ) {
 		var levelInt = PS.data(x, y);
 		if ((levelInt <= levelFiles.length)) {
 
-			//if (levelsUnlocked[levelInt - 1]) {    // REAL VERSION
-			if (true) {                              // DEBUG VERSION
+			if (levelsUnlocked[levelInt]) {    // REAL VERSION
+			//if (true) {                              // DEBUG VERSION
 				currentLevel = levelInt;
 				drawLevel();
 
@@ -192,17 +189,15 @@ PS.touch = function( x, y, data, options ) {
 	} else {
 		if (PS.glyph(x, y) === 11119 && !sliding) {  // RESTART
 
+			PS.audioPlay("fx_click", {volume: 0.2});
 			coinsCollected -= coinCache;
 			slideDirection = 0;
 			drawLevel();
-			var pos = PS.spriteMove(player);
-			PS.debug("CURRENT POS: " + pos.x + ", " + pos.y + "\n");
-			PS.debug("SHOWING: " + PS.spriteShow(player) + "\n");
-
 			sliding = false;
 
 		} else if (PS.glyph(x, y) === 11176 && !sliding) {  // LEVEL SELECT
 
+			PS.audioPlay("fx_click", {volume: 0.2});
 			coinsCollected = 0;
 			drawLevelSelect();
 		}
@@ -281,7 +276,6 @@ var decodeImage = function(mapImage) {
 
 var drawLevel = function() {
 
-
 	if (delayTimer !== "") {
 		PS.timerStop(delayTimer);
 		delayTimer = "";
@@ -295,7 +289,7 @@ var drawLevel = function() {
 	state = 1;
 	sliding = false;
 
-	PS.statusText("Icescape! (coins collected: " + coinsCollected + ")");
+	updateCoins();
 
 	levelHeight = map.length;
 	levelWidth = map[0].length + 1;
@@ -324,6 +318,7 @@ var drawLevel = function() {
 
 	for (var y = 0; y < levelHeight; y += 1) {
 		for (var x = 0; x < levelWidth; x += 1) {
+			PS.gridPlane(0);
 			switch (map[y][x]) {
 
 				case 0: // ground
@@ -434,6 +429,7 @@ var drawLevel = function() {
 					break;
 
 				case 9: // player
+
 					PS.spriteMove(player, x, y);
 					PS.alpha(x, y, 0);
 					PS.border(x, y, 0);
@@ -469,6 +465,10 @@ var drawLevel = function() {
 		}
 	}
 
+	var pos = PS.spriteMove(player);
+	PS.spriteMove(player, 0, 0);
+	PS.spriteMove(player, pos.x, pos.y);
+
 	if (portalCoord1_1 !== 0) {
 		var x1 = portalCoord1_1[0];
 		var y1 = portalCoord1_1[1];
@@ -488,7 +488,7 @@ var drawLevel = function() {
 		PS.data(x2, y2, portalCoord2_1);
 	}
 
-	sliding = false;
+	//sliding = false;
 }
 
 
@@ -530,7 +530,7 @@ var drawLevelSelect = function() {
 
 
 var updateCoins = function() {
-	PS.statusText("Icescape! (coins collected: " + coinsCollected + ")");
+	PS.statusText("WASD/Arrow Keys | Coins Collected: " + coinsCollected);
 }
 
 
@@ -589,7 +589,7 @@ var slide = function() { // slide in the specified direction until you hit a wal
 		sliding = false;
 		slideDirection = 0;
 		PS.glyphAlpha(x, y, 255);
-		levelsUnlocked[currentLevel] = true;
+		levelsUnlocked[currentLevel + 1] = true;
 		coinCache = 0;
 
 		if (currentLevel < levels.length - 1) {
@@ -738,6 +738,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				sliding = true;
 				break;
 			}
+
 
 		}
 	}
