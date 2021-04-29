@@ -52,6 +52,7 @@ Any value returned is ignored.
 
 var player;
 var player_spears = [];
+var mark_delete_spear = [];
 var player_direction = 1;
 var player_shoot = false;
 var spear_time = 0;
@@ -60,16 +61,24 @@ var MAX_SPEAR_TIME = 5;
 var enemies = [];
 var enemy_spawn = 0;
 var MAX_SPAWN_TIME = 15;
+var mark_delete_enemy = [];
 
 var GRID_HEIGHT = 16;
 var GRID_WIDTH = 16;
+
+var resetGame = false;
 
 var PLAYER_COLOR = 0xd10000;
 var ENEMY_COLOR = 0x0a60c9;
 var SPEAR_COLOR = 0x8a7738;
 
 var game_time;
+var restarting;
+var refresh;
+
 var tick_rate = 5;
+
+var playerControl = true;
 
 PS.init = function( system, options ) {
 	// Uncomment the following code line
@@ -105,10 +114,10 @@ PS.init = function( system, options ) {
 
 	player = PS.spriteSolid(1, 1);
 	PS.spriteSolidColor(player, PLAYER_COLOR);
-	//PS.spritePlane(player, 5);
+	PS.spritePlane(player, 5);
 	PS.spriteMove(player, 8, 8);
 	game_time = PS.timerStart(tick_rate, timer);
-
+	PS.statusText("Athena's Blessing");
 	// Change this TEAM constant to your team name,
 	// using ONLY alphabetic characters (a-z).
 	// No numbers, spaces, punctuation or special characters!
@@ -171,8 +180,8 @@ var timer = function() {
 		var e_y = PS.spriteMove(enemySprite).y;
 		var line = PS.line(e_x,e_y,x,y);
 		var nextSpot = line[0];
+		PS.spriteCollide(enemySprite, enemyCollide);
 		var enemy = {sprite:enemySprite, next:nextSpot};
-
 		enemies.push(enemy);
 		enemy_spawn = 0;
 
@@ -190,14 +199,6 @@ var timer = function() {
 	enemy_spawn+=1;
 	var spear_keep = [];
 
-	if(player_shoot && spear_time === 0) {
-		var spearSprite = PS.spriteSolid(1,1);
-		PS.spriteSolidColor(spearSprite, SPEAR_COLOR);
-		PS.spriteMove(spearSprite,x,y);
-		var spear = {sprite:spearSprite, direction:player_direction};
-		player_spears.push(spear);
-		spear_time = MAX_SPEAR_TIME;
-	}
 	for(var i = 0; i < player_spears.length; i++) {
 		var spear_x = PS.spriteMove(player_spears[i].sprite).x;
 		var spear_y = PS.spriteMove(player_spears[i].sprite).y;
@@ -240,11 +241,104 @@ var timer = function() {
 				break;
 		}
 	}
+
 	player_spears = spear_keep;
+
+	if(player_shoot && spear_time === 0) {
+		var spearSprite = PS.spriteSolid(1,1);
+		PS.spriteSolidColor(spearSprite, SPEAR_COLOR);
+		if(player_direction===1) {
+			PS.spriteMove(spearSprite,x,y-1);
+		}
+		else if(player_direction===2) {
+			PS.spriteMove(spearSprite,x+1,y);
+		}
+		else if(player_direction===3) {
+			PS.spriteMove(spearSprite,x,y+1);
+		}
+		else {
+			PS.spriteMove(spearSprite,x-1,y);
+		}
+		PS.spriteCollide(spearSprite, spearCollide);
+		var spear = {sprite:spearSprite, direction:player_direction};
+		player_spears.push(spear);
+		spear_time = MAX_SPEAR_TIME;
+	}
+
+	for(var e = 0; e < mark_delete_spear.length; e++) {
+		spear_keep = [];
+		for(var f = 0; f < player_spears.length; f++) {
+			if(player_spears[f].sprite !== mark_delete_spear[e]) {
+				spear_keep.push(player_spears[f]);
+			}
+			else {
+				PS.spriteDelete(player_spears[f].sprite);
+			}
+		}
+		player_spears = spear_keep;
+		spear_keep = [];
+	}
+	var enemies_keep = [];
+	for(var g = 0; g < mark_delete_enemy.length; g++) {
+		for(var h = 0; h < enemies.length; h++) {
+			if(enemies[h].sprite !== mark_delete_enemy[g]) {
+				enemies_keep.push(enemies[h]);
+			}
+			else {
+				PS.spriteDelete(enemies[h].sprite);
+			}
+		}
+		enemies = enemies_keep;
+		enemies_keep = [];
+	}
+
 	if(spear_time > 0) {
 		spear_time -= 1;
 	}
+
+	if(resetGame) {
+		playerControl = false;
+		PS.timerStop(game_time);
+		PS.statusText("You died, restarting");
+		restarting = PS.timerStart(180, restart);
+	}
+
 }
+
+var spearCollide = function(s1, p1, s2, p2, type) {
+	if(s2!=player && type===PS.SPRITE_OVERLAP) {
+		mark_delete_spear.push(s1);
+		mark_delete_enemy.push(s2);
+	}
+}
+
+var enemyCollide = function(s1, p1, s2, p2, type) {
+	if(s2===player && type == PS.SPRITE_OVERLAP) {
+		resetGame = true;
+	}
+};
+
+var restart = function() {
+	PS.timerStop(restarting);
+	refresh = PS.timerStart(1,resetting);
+};
+
+var resetting = function() {
+	PS.statusText("Athena's Blessing");
+	PS.spriteMove(player, 8, 8);
+	for(var x = 0; x < enemies.length; x++) {
+		PS.spriteDelete(enemies[x].sprite);
+	}
+	for(var y = 0; y < player_spears.length; y++) {
+		PS.spriteDelete(player_spears[y].sprite);
+	}
+	enemies = [];
+	player_spears = [];
+	resetGame = false;
+	PS.timerStop(refresh);
+	playerControl = true;
+	game_time = PS.timerStart(tick_rate, timer);
+};
 
 PS.touch = function( x, y, data, options ) {
 	// Uncomment the following code line
@@ -340,12 +434,13 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	var x = PS.spriteMove(player).x;
 	var y = PS.spriteMove(player).y;
 	// PS.debug( "PS.keyDown(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
+	if(playerControl) {
 		switch (key) {
 			case PS.KEY_ARROW_UP:
 			case 119:
 			case 87: {
-				if(PS.spriteMove(player).y > 0) {
-					PS.spriteMove(player, x, y-1);
+				if (PS.spriteMove(player).y > 0) {
+					PS.spriteMove(player, x, y - 1);
 				}
 				player_direction = 1;
 				break;
@@ -354,8 +449,8 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 			case PS.KEY_ARROW_RIGHT:
 			case 100:
 			case 68: {
-				if(PS.spriteMove(player).x < GRID_WIDTH-1) {
-					PS.spriteMove(player, x+1, y);
+				if (PS.spriteMove(player).x < GRID_WIDTH - 1) {
+					PS.spriteMove(player, x + 1, y);
 				}
 				player_direction = 2;
 				break;
@@ -363,8 +458,8 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 			case PS.KEY_ARROW_DOWN:
 			case 115:
 			case 83: {
-				if(PS.spriteMove(player).y < GRID_HEIGHT-1) {
-					PS.spriteMove(player, x, y+1);
+				if (PS.spriteMove(player).y < GRID_HEIGHT - 1) {
+					PS.spriteMove(player, x, y + 1);
 				}
 				player_direction = 3;
 				break;
@@ -372,8 +467,8 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 			case PS.KEY_ARROW_LEFT:
 			case 97:
 			case 65: {
-				if(PS.spriteMove(player).x > 0) {
-					PS.spriteMove(player, x-1, y);
+				if (PS.spriteMove(player).x > 0) {
+					PS.spriteMove(player, x - 1, y);
 				}
 				player_direction = 4;
 				break;
@@ -382,6 +477,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				player_shoot = true;
 				break;
 		}
+	}
 };
 
 /*
