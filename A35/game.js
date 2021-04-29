@@ -70,9 +70,8 @@ var SPEAR_RATE = {cooldown: 0, max: 20};
 var ENEMY_SPEED = {cooldown: 0, max: 30};
 var ENEMY_RATE = {cooldown: 0, max: 75};
 
+var MAX_ENEMY_COUNT = 6;
 var enemies = [];
-var enemy_spawn = 0;
-var MAX_SPAWN_TIME = 15;
 var mark_delete_enemy = [];
 
 var GRID_HEIGHT = 16;
@@ -106,21 +105,17 @@ PS.init = function( system, options ) {
 	PS.spriteSolidColor(player, PLAYER_COLOR);
 	PS.spritePlane(player, 5);
 	PS.spriteMove(player, 8, 8);
+	PS.glyph(8, 8, UP_GLYPH);
+	PS.glyphColor(8, 8, PS.COLOR_WHITE);
+
 	game_time = PS.timerStart(TICK_RATE, timer);
 	PS.statusText("Athena's Blessing");
 
 
 
-	// Change this TEAM constant to your team name,
-	// using ONLY alphabetic characters (a-z).
-	// No numbers, spaces, punctuation or special characters!
+
 
 	const TEAM = "teamiris";
-
-	// This code should be the last thing
-	// called by your PS.init() handler.
-	// DO NOT MODIFY IT, except for the change
-	// explained in the comment below.
 
 	PS.dbLogin( "imgd2900", TEAM, function ( id, user ) {
 		if ( user === PS.ERROR ) {
@@ -134,16 +129,8 @@ PS.init = function( system, options ) {
 	// before deploying the code to your Web site.
 };
 
-/*
-PS.touch ( x, y, data, options )
-Called when the left mouse button is clicked over bead(x, y), or when bead(x, y) is touched.
-This function doesn't have to do anything. Any value returned is ignored.
-[x : Number] = zero-based x-position (column) of the bead on the grid.
-[y : Number] = zero-based y-position (row) of the bead on the grid.
-[data : *] = The JavaScript value previously associated with bead(x, y) using PS.data(); default = 0.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
 
+// GLOBAL GAME LOOP
 var timer = function() {
 	var x = PS.spriteMove(player).x;
 	var y = PS.spriteMove(player).y;
@@ -152,7 +139,7 @@ var timer = function() {
 
 // ~~~~~~ SPAWN ENEMIES ~~~~~~
 
-	if(ENEMY_RATE.cooldown >= ENEMY_RATE.max) {
+	if(ENEMY_RATE.cooldown >= ENEMY_RATE.max && enemies.length < MAX_ENEMY_COUNT) {
 		ENEMY_RATE.cooldown = 0;
 
 		//create the sprite
@@ -391,7 +378,7 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 
 	var x = PS.spriteMove(player).x;
 	var y = PS.spriteMove(player).y;
-	
+
 	if(playerControl) {
 
 		switch (key) {
@@ -456,22 +443,9 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	}
 };
 
-/*
-PS.keyUp ( key, shift, ctrl, options )
-Called when a key on the keyboard is released.
-This function doesn't have to do anything. Any value returned is ignored.
-[key : Number] = ASCII code of the released key, or one of the PS.KEY_* constants documented in the API.
-[shift : Boolean] = true if shift key is held down, else false.
-[ctrl : Boolean] = true if control key is held down, else false.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-*/
 
 PS.keyUp = function( key, shift, ctrl, options ) {
-	// Uncomment the following code line to inspect first three parameters:
 
-	// PS.debug( "PS.keyUp(): key=" + key + ", shift=" + shift + ", ctrl=" + ctrl + "\n" );
-
-	// Add code here for when a key is released.
 	switch (key) {
 		case PS.KEY_SPACE:
 			player_shoot = false;
@@ -479,40 +453,8 @@ PS.keyUp = function( key, shift, ctrl, options ) {
 	}
 };
 
-/*
-PS.input ( sensors, options )
-Called when a supported input device event (other than those above) is detected.
-This function doesn't have to do anything. Any value returned is ignored.
-[sensors : Object] = A JavaScript object with properties indicating sensor status; see API documentation for details.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-NOTE: Currently, only mouse wheel events are reported, and only when the mouse cursor is positioned directly over the grid.
-*/
 
-PS.input = function( sensors, options ) {
-	// Uncomment the following code lines to inspect first parameter:
+PS.input = function( sensors, options ) {};
 
-	//	 var device = sensors.wheel; // check for scroll wheel
-	//
-	//	 if ( device ) {
-	//	   PS.debug( "PS.input(): " + device + "\n" );
-	//	 }
-
-	// Add code here for when an input event is detected.
-};
-
-/*
-PS.shutdown ( options )
-Called when the browser window running Perlenspiel is about to close.
-This function doesn't have to do anything. Any value returned is ignored.
-[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
-NOTE: This event is generally needed only by applications utilizing networked telemetry.
-*/
-
-PS.shutdown = function( options ) {
-	// Uncomment the following code line to verify operation:
-
-	// PS.debug( "“Dave. My mind is going. I can feel it.”\n" );
-
-	// Add code here to tidy up when Perlenspiel is about to close.
-};
+PS.shutdown = function( options ) {};
 
