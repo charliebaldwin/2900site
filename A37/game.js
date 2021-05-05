@@ -235,23 +235,31 @@ var loadScene = function() {
 
 	for (var x = 0; x < GRID_WIDTH; x += 1) {
 		for (var y = 0; y < GRID_WIDTH; y += 1) {
-			var colorVar = 255 - PS.random(10);
+			var colorVar = 255 - PS.random(20);
 			PS.color(x, y, [colorVar, colorVar, colorVar]);
 		}
 	}
 
-	PS.color(0, PS.ALL, PS.COLOR_BLACK);
-	PS.color(PS.ALL, 0, PS.COLOR_BLACK);
-	PS.color(GRID_WIDTH-1, PS.ALL, PS.COLOR_BLACK);
-	PS.color(PS.ALL, GRID_HEIGHT-1, PS.COLOR_BLACK);
+	PS.border(PS.ALL, PS.ALL, 0);
+
+//	PS.borderColor(PS.ALL, PS.ALL, PS.COLOR_BLACK);
+	PS.border(0, PS.ALL, {right: 2});
+	PS.border(PS.ALL, 0, {bottom: 2});
+	PS.border(GRID_WIDTH-1, PS.ALL, {left: 2});
+	PS.border(PS.ALL, GRID_HEIGHT-1, {top: 2, bottom: 2});
+	PS.border(0, 0, 0);
+	PS.border(0, GRID_HEIGHT-1, {right: 0, left: 0, top: 0, bottom: 2});
+	PS.border(GRID_WIDTH-1, 0, 0);
+	PS.border(GRID_WIDTH-1, GRID_HEIGHT-1, {right: 0, left: 0, top: 0, bottom: 2});
+	PS.border(GRID_WIDTH-1, GRID_HEIGHT, 0);
 	PS.color(PS.ALL, GRID_HEIGHT, PS.COLOR_WHITE);
 
 
 	//PS.border(PS.ALL, PS.ALL, {top: 1, left: 1, right: 0, bottom: 0});
-	PS.border(PS.ALL, PS.ALL, 0);
+
 
 	//powerup slots
-	PS.border(POWER_PIERCE.slot.x, POWER_PIERCE.slot.y, 2);
+	PS.border(POWER_PIERCE.slot.x, POWER_PIERCE.slot.y, {top: 2, left: 2, right: 2, bottom: 2});
 	PS.color(POWER_PIERCE.slot.x,  POWER_PIERCE.slot.y, 0x000000);
 
 	PS.border(POWER_RAPID.slot.x, POWER_RAPID.slot.y, 2);
@@ -285,6 +293,7 @@ var loadScene = function() {
 	PS.audioLoad("fx_shoot8");
 	PS.audioLoad("fx_shoot7");
 	PS.audioLoad("fx_coin5");
+	PS.audioLoad("fx_shoot3");
 
 	loadRound();
 }
@@ -363,6 +372,7 @@ var timer = function() {
 			if (POWER_PIERCE.timer >= POWER_PIERCE.duration) {
 				POWER_PIERCE.active = false;
 				POWER_PIERCE.timer = 0;
+				PS.audioPlay("fx_shoot3", {volume: 0.2});
 			}
 		}
 		if (POWER_RAPID.active) {
@@ -372,6 +382,7 @@ var timer = function() {
 				POWER_RAPID.active = false;
 				spearRate.max = DEFAULT_SPEAR_RATE;
 				POWER_RAPID.timer = 0;
+				PS.audioPlay("fx_shoot3", {volume: 0.2});
 			}
 		}
 
