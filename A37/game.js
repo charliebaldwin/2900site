@@ -127,7 +127,6 @@ PS.init = function( system, options ) {
 	PS.border(PS.ALL, PS.ALL, 0);
 	PS.statusText("");
 	loadCutscenes();
-	playIntro();
 	const TEAM = "teamiris";
 
 	PS.dbLogin( "imgd2900", TEAM, function ( id, user ) {
@@ -161,6 +160,7 @@ var loadIntroImages = function(image) {
 	}
 	else {
 		introIndex = 0;
+		playIntro();
 	}
 }
 
@@ -196,7 +196,7 @@ var introTimer = function() {
 		playIntro();
 	}
 	else {
-		PS.debug("intro image size was "+introImages.length+"\n");
+		//PS.debug("intro image size was "+introImages.length+"\n");
 		isCutscene = false;
 		PS.timerStop(intro_time);
 		loadScene();
