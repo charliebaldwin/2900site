@@ -123,7 +123,9 @@ var outro_time = "";
 var playerControl = true;
 
 PS.init = function( system, options ) {
-
+	PS.gridSize(GRID_WIDTH, GRID_HEIGHT);
+	PS.border(PS.ALL, PS.ALL, 0);
+	PS.statusText("");
 	loadCutscenes();
 	playIntro();
 	const TEAM = "teamiris";
@@ -143,8 +145,8 @@ PS.init = function( system, options ) {
 var loadCutscenes = function() {
 	for(var e = 1; e < 49; e+=1) {
 		introFiles.push(`Intro_Scene/intro${e}.png`);
-		PS.imageLoad(introFiles[e-1],loadIntroImages);
-	}/*
+	}
+	PS.imageLoad(introFiles[introIndex],loadIntroImages);/*
 	for(var f = 1; f < 49; f+=1) {
 		outroFiles.push(`Outro_Scene/outro${e}.png`);
 		PS.imageLoad(outroFiles[f-1],loadOutroImages);
@@ -153,6 +155,13 @@ var loadCutscenes = function() {
 
 var loadIntroImages = function(image) {
 	introImages.push(image);
+	if(introIndex < 47) {
+		introIndex+=1;
+		PS.imageLoad(introFiles[introIndex],loadIntroImages);
+	}
+	else {
+		introIndex = 0;
+	}
 }
 
 var loadOutroImages = function(image) {
@@ -164,8 +173,17 @@ var playIntro = function() {
 }
 
 var introTimer = function() {
-	if(introIndex <= introImages.length) {
+	if(introIndex < introImages.length) {
 		PS.imageBlit(introImages[introIndex], 0, 0);
+		if(introIndex == 12) {
+			PS.statusText("Athena: My child, for glory, you must fight.");
+		}
+		else if(introIndex == 21) {
+			PS.statusText("Destroy these barbarians and become legend.");
+		}
+		else if(introIndex == 36) {
+			PS.statusText("Raise your spear, the enemy approaches.");
+		}
 		introIndex+=1;
 		PS.timerStop(intro_time);
 		playIntro();
@@ -639,34 +657,6 @@ var enemyCollide = function(s1, p1, s2, p2, type) {
 	}
 };
 
-var fadePlayerColor = function() {
-
-	PS.debug(PS.unmakeRGB(PS.spriteSolidColor(player), {}).r + " current player R\n");
-	if (fadeUp) {
-		var color = PS.unmakeRGB(PS.spriteSolidColor(player), {});
-		color.r += 5;
-		color.g += 5;
-		color.b += 5;
-		PS.debug(color.r + "\n");
-		PS.spriteSolidColor(player, color);
-		PS.debug(PS.unmakeRGB(PS.spriteSolidColor(player), {}).r + " current player R\n");
-
-
-		if (color.r >= PLAYER_COLOR_2.r) {
-			fadeUp = false;
-		}
-
-	} else {
-		var color = PS.unmakeRGB(PS.spriteSolidColor(player), {});
-		color.r -= 1;
-		color.g -= 1;
-		color.b -= 1;
-		if (color.r <= PLAYER_COLOR.r) {
-			fadeUp = true;
-		}
-		PS.spriteSolidColor(player, color);
-	}
-}
 var restart = function() {
 
 };
@@ -690,10 +680,9 @@ PS.exitGrid = function( options ) {};
 
 PS.keyDown = function( key, shift, ctrl, options ) {
 
-	var x = PS.spriteMove(player).x;
-	var y = PS.spriteMove(player).y;
-
 	if(playerControl && isCutscene == false) {
+		var x = PS.spriteMove(player).x;
+		var y = PS.spriteMove(player).y;
 		switch (key) {
 			case PS.KEY_ARROW_UP:
 			case 119:
