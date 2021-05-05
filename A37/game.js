@@ -124,6 +124,7 @@ var playerControl = true;
 
 PS.init = function( system, options ) {
 	PS.gridSize(GRID_WIDTH, GRID_HEIGHT);
+	PS.border(PS.ALL, PS.ALL, 0);
 	loadCutscenes();
 	playIntro();
 	const TEAM = "teamiris";
@@ -171,7 +172,7 @@ var playIntro = function() {
 }
 
 var introTimer = function() {
-	if(introIndex <= introImages.length) {
+	if(introIndex < introImages.length) {
 		PS.imageBlit(introImages[introIndex], 0, 0);
 		introIndex+=1;
 		PS.timerStop(intro_time);
