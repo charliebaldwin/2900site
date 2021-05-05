@@ -179,10 +179,10 @@ var introTimer = function() {
 			PS.statusText("Athena: My child, for glory, you must fight.");
 		}
 		else if(introIndex == 21) {
-			PS.statusText("Use your spear on these barbarians and become legend.");
+			PS.statusText("Athena: Destroy these barbarians and become legend.");
 		}
 		else if(introIndex == 36) {
-			PS.statusText("Quickly now, the enemy approaches.");
+			PS.statusText("Athena: Raise your spear, the enemy approaches.");
 		}
 		introIndex+=1;
 		PS.timerStop(intro_time);
