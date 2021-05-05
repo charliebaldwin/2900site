@@ -146,11 +146,11 @@ var loadCutscenes = function() {
 	for(var e = 1; e < 49; e+=1) {
 		introFiles.push(`Intro_Scene/intro${e}.png`);
 	}
-	PS.imageLoad(introFiles[introIndex],loadIntroImages);/*
-	for(var f = 1; f < 49; f+=1) {
-		outroFiles.push(`Outro_Scene/outro${e}.png`);
-		PS.imageLoad(outroFiles[f-1],loadOutroImages);
-	}*/
+	PS.imageLoad(introFiles[introIndex],loadIntroImages);
+	for(var f = 1; f < 31; f+=1) {
+		outroFiles.push(`Outro_Scene/outro${f}.png`);
+	}
+	PS.imageLoad(outroFiles[outroIndex],loadOutroImages);
 }
 
 var loadIntroImages = function(image) {
@@ -166,6 +166,13 @@ var loadIntroImages = function(image) {
 
 var loadOutroImages = function(image) {
 	outroImages.push(image);
+	if(outroIndex < 29) {
+		outroIndex+=1;
+		PS.imageLoad(outroFiles[outroIndex],loadOutroImages);
+	}
+	else {
+		outroIndex = 0;
+	}
 }
 
 var playIntro = function() {
@@ -178,7 +185,7 @@ var introTimer = function() {
 		if(introIndex == 12) {
 			PS.statusText("Athena: My child, for glory, you must fight.");
 		}
-		else if(introIndex == 21) {
+		else if(introIndex == 23) {
 			PS.statusText("Destroy these barbarians and become legend.");
 		}
 		else if(introIndex == 36) {
@@ -192,6 +199,30 @@ var introTimer = function() {
 		isCutscene = false;
 		PS.timerStop(intro_time);
 		loadScene();
+	}
+}
+
+var playOutro = function() {
+	outro_time = PS.timerStart(30, outroTimer);
+}
+
+var outroTimer = function() {
+	if(outroIndex < outroImages.length) {
+		PS.imageBlit(outroImages[outroIndex], 0, 0);
+		if(outroIndex == 9) {
+			PS.statusText("Child: Daddy? Have you seen my daddy?");
+		}
+		else if(outroIndex == 18) {
+			PS.statusText("Where is he? He was just protecting us...\n");
+		}
+		outroIndex+=1;
+		PS.timerStop(outro_time);
+		playOutro();
+	}
+	else {
+		PS.statusText("Game over.");
+		isCutscene = false;
+		PS.timerStop(outro_time);
 	}
 }
 
@@ -436,8 +467,6 @@ var timer = function() {
 				PS.spriteCollide(sprite, enemyCollide);
 
 				PS.spriteMove(sprite, enemies[z].next[0], enemies[z].next[1]);
-
-
 			}
 		}
 		enemySpeed.cooldown += 1;
@@ -591,6 +620,10 @@ var timer = function() {
 			playerControl = false;
 			//PS.statusText("You died, restarting round...");
 			updateStatus(DEATH_QUOTES[PS.random(DEATH_QUOTES.length) - 1]);
+			POWER_RAPID.active = false;
+			POWER_PIERCE.active = false;
+			POWER_RAPID.timer = 0;
+			POWER_PIERCE.timer = 0;
 			PS.audioPlay("fx_shoot8", {volume: 0.3});
 			restarting = PS.timerStart(180, loadRound);
 			PS.spriteShow(player, false);
@@ -615,11 +648,24 @@ var timer = function() {
 			updateStatus(WIN_QUOTES[PS.random(WIN_QUOTES.length) - 1]);
 			currentRound += 1;
 			if (currentRound >= rounds.length) {
-				currentRound = 0;
+				isCutscene = true;
+				PS.gridSize(GRID_WIDTH, GRID_HEIGHT);
+				PS.border(PS.ALL, PS.ALL, 0);
+				PS.statusText("");
+				PS.spriteShow(player, false);
+				for(var x = 0; x < enemies.length; x++) {
+					PS.spriteDelete(enemies[x].sprite);
+				}
+				for(var y = 0; y < player_spears.length; y++) {
+					PS.spriteDelete(player_spears[y].sprite);
+				}
+				playOutro();
 			}
 			PS.timerStop(game_time);
 			playerControl = false;
-			restarting = PS.timerStart(180, loadRound);
+			if(isCutscene == false) {
+				restarting = PS.timerStart(180, loadRound);
+			}
 		}
 	}
 }
@@ -657,14 +703,6 @@ var enemyCollide = function(s1, p1, s2, p2, type) {
 	}
 };
 
-var restart = function() {
-
-};
-
-var resetting = function() {
-
-};
-
 PS.touch = function( x, y, data, options ) {
 	//createPowerUp(x, y, PS.random(2));
 };
@@ -690,8 +728,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).y > 1) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x, y - 1, UP_GLYPH);
-					PS.glyphColor(x, y - 1, PS.COLOR_WHITE);
+					if(PS.glyph(x, y - 1) === 0) {
+						PS.glyph(x, y - 1, UP_GLYPH);
+						PS.glyphColor(x, y - 1, PS.COLOR_WHITE);
+					}
 					PS.spriteMove(player, x, y - 1);
 				}
 				player_direction = 1;
@@ -704,8 +744,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).x < GRID_WIDTH - 2) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x + 1, y, RIGHT_GLYPH);
-					PS.glyphColor(x + 1, y, PS.COLOR_WHITE);
+					if(PS.glyph(x + 1, y) === 0) {
+						PS.glyph(x + 1, y, RIGHT_GLYPH);
+						PS.glyphColor(x + 1, y, PS.COLOR_WHITE);
+					}
 
 					PS.spriteMove(player, x + 1, y);
 				}
@@ -718,8 +760,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).y < GRID_HEIGHT - 2) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x, y + 1, DOWN_GLYPH);
-					PS.glyphColor(x, y + 1, PS.COLOR_WHITE);
+					if(PS.glyph(x, y + 1) === 0) {
+						PS.glyph(x, y + 1, DOWN_GLYPH);
+						PS.glyphColor(x, y + 1, PS.COLOR_WHITE);
+					}
 					PS.spriteMove(player, x, y + 1);
 				}
 				player_direction = 3;
@@ -731,8 +775,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).x > 1) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x - 1, y, LEFT_GLYPH);
-					PS.glyphColor(x - 1, y, PS.COLOR_WHITE);
+					if(PS.glyph(x - 1, y) === 0) {
+						PS.glyph(x - 1, y, LEFT_GLYPH);
+						PS.glyphColor(x - 1, y, PS.COLOR_WHITE);
+					}
 					PS.spriteMove(player, x - 1, y);
 				}
 				player_direction = 4;
