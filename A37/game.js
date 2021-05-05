@@ -125,6 +125,7 @@ var playerControl = true;
 PS.init = function( system, options ) {
 	PS.gridSize(GRID_WIDTH, GRID_HEIGHT);
 	PS.border(PS.ALL, PS.ALL, 0);
+	PS.statusText("");
 	loadCutscenes();
 	playIntro();
 	const TEAM = "teamiris";
@@ -174,6 +175,15 @@ var playIntro = function() {
 var introTimer = function() {
 	if(introIndex < introImages.length) {
 		PS.imageBlit(introImages[introIndex], 0, 0);
+		if(introIndex == 12) {
+			PS.statusText("Athena: My child, for glory, you must fight.");
+		}
+		else if(introIndex == 21) {
+			PS.statusText("Use your spear on these barbarians and become legend.");
+		}
+		else if(introIndex == 36) {
+			PS.statusText("Quickly now, the enemy approaches.");
+		}
 		introIndex+=1;
 		PS.timerStop(intro_time);
 		playIntro();
