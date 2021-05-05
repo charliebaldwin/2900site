@@ -466,8 +466,6 @@ var timer = function() {
 				PS.spriteCollide(sprite, enemyCollide);
 
 				PS.spriteMove(sprite, enemies[z].next[0], enemies[z].next[1]);
-
-
 			}
 		}
 		enemySpeed.cooldown += 1;
@@ -650,7 +648,16 @@ var timer = function() {
 			currentRound += 1;
 			if (currentRound >= rounds.length) {
 				isCutscene = true;
+				PS.gridSize(GRID_WIDTH, GRID_HEIGHT);
+				PS.border(PS.ALL, PS.ALL, 0);
 				PS.statusText("");
+				PS.spriteShow(player, false);
+				for(var x = 0; x < enemies.length; x++) {
+					PS.spriteDelete(enemies[x].sprite);
+				}
+				for(var y = 0; y < player_spears.length; y++) {
+					PS.spriteDelete(player_spears[y].sprite);
+				}
 				playOutro();
 			}
 			PS.timerStop(game_time);
@@ -693,14 +700,6 @@ var enemyCollide = function(s1, p1, s2, p2, type) {
 	// 		}
 	// 	}
 	}
-};
-
-var restart = function() {
-
-};
-
-var resetting = function() {
-
 };
 
 PS.touch = function( x, y, data, options ) {
