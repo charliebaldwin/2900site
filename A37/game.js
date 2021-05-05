@@ -203,7 +203,7 @@ var introTimer = function() {
 }
 
 var playOutro = function() {
-	intro_time = PS.timerStart(30, outroTimer);
+	outro_time = PS.timerStart(30, outroTimer);
 }
 
 var outroTimer = function() {
@@ -621,6 +621,10 @@ var timer = function() {
 			playerControl = false;
 			//PS.statusText("You died, restarting round...");
 			updateStatus(DEATH_QUOTES[PS.random(DEATH_QUOTES.length) - 1]);
+			POWER_RAPID.active = false;
+			POWER_PIERCE.active = false;
+			POWER_RAPID.timer = 0;
+			POWER_PIERCE.timer = 0;
 			PS.audioPlay("fx_shoot8", {volume: 0.3});
 			restarting = PS.timerStart(180, loadRound);
 			PS.spriteShow(player, false);
@@ -724,8 +728,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).y > 1) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x, y - 1, UP_GLYPH);
-					PS.glyphColor(x, y - 1, PS.COLOR_WHITE);
+					if(PS.glyph(x, y - 1) === 0) {
+						PS.glyph(x, y - 1, UP_GLYPH);
+						PS.glyphColor(x, y - 1, PS.COLOR_WHITE);
+					}
 					PS.spriteMove(player, x, y - 1);
 				}
 				player_direction = 1;
@@ -738,8 +744,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).x < GRID_WIDTH - 2) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x + 1, y, RIGHT_GLYPH);
-					PS.glyphColor(x + 1, y, PS.COLOR_WHITE);
+					if(PS.glyph(x + 1, y) === 0) {
+						PS.glyph(x + 1, y, RIGHT_GLYPH);
+						PS.glyphColor(x + 1, y, PS.COLOR_WHITE);
+					}
 
 					PS.spriteMove(player, x + 1, y);
 				}
@@ -752,8 +760,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).y < GRID_HEIGHT - 2) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x, y + 1, DOWN_GLYPH);
-					PS.glyphColor(x, y + 1, PS.COLOR_WHITE);
+					if(PS.glyph(x, y + 1) === 0) {
+						PS.glyph(x, y + 1, DOWN_GLYPH);
+						PS.glyphColor(x, y + 1, PS.COLOR_WHITE);
+					}
 					PS.spriteMove(player, x, y + 1);
 				}
 				player_direction = 3;
@@ -765,8 +775,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 				if (PS.spriteMove(player).x > 1) {
 					PS.glyph(x, y, 0);
 					PS.glyphColor(x, y, PS.DEFAULT);
-					PS.glyph(x - 1, y, LEFT_GLYPH);
-					PS.glyphColor(x - 1, y, PS.COLOR_WHITE);
+					if(PS.glyph(x - 1, y) === 0) {
+						PS.glyph(x - 1, y, LEFT_GLYPH);
+						PS.glyphColor(x - 1, y, PS.COLOR_WHITE);
+					}
 					PS.spriteMove(player, x - 1, y);
 				}
 				player_direction = 4;
