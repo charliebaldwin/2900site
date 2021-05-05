@@ -94,7 +94,7 @@ var ROUND_TWO =   {enemyCount: 20, enemyRate: DEFAULT_ENEMY_RATE - 5,      enemy
 var ROUND_THREE = {enemyCount: 25, enemyRate: DEFAULT_ENEMY_RATE - 15, enemyCap: 6, enemySpeed: DEFAULT_ENEMY_SPEED - 16, enemiesSpawned: 0};
 
 var rounds = [ROUND_ONE, ROUND_TWO, ROUND_THREE];
-var currentRound = 2;
+var currentRound = 0;
 var introFiles = [];
 var introIndex = 0;
 var introImages = [];
@@ -220,6 +220,7 @@ var outroTimer = function() {
 		playOutro();
 	}
 	else {
+		PS.statusText("Game over.");
 		isCutscene = false;
 		PS.timerStop(outro_time);
 	}
