@@ -123,7 +123,7 @@ var outro_time = "";
 var playerControl = true;
 
 PS.init = function( system, options ) {
-
+	PS.gridSize(GRID_WIDTH, GRID_HEIGHT+1);
 	loadCutscenes();
 	playIntro();
 	const TEAM = "teamiris";
@@ -181,8 +181,6 @@ var loadScene = function() {
 	PS.keyRepeat(true, 10, 10);
 
 	PS.gridPlane(1);
-
-	PS.gridSize(GRID_WIDTH, GRID_HEIGHT+1);
 
 	for (var x = 0; x < GRID_WIDTH; x += 1) {
 		for (var y = 0; y < GRID_WIDTH; y += 1) {
