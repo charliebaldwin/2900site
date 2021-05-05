@@ -159,7 +159,6 @@ var loadIntroImages = function(image) {
 		PS.imageLoad(introFiles[introIndex],loadIntroImages);
 	}
 	else {
-		playIntro();
 		introIndex = 0;
 		playIntro();
 	}
