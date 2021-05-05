@@ -123,7 +123,7 @@ var outro_time = "";
 var playerControl = true;
 
 PS.init = function( system, options ) {
-	PS.gridSize(GRID_WIDTH, GRID_HEIGHT+1);
+	PS.gridSize(GRID_WIDTH, GRID_HEIGHT);
 	loadCutscenes();
 	playIntro();
 	const TEAM = "teamiris";
@@ -143,8 +143,8 @@ PS.init = function( system, options ) {
 var loadCutscenes = function() {
 	for(var e = 1; e < 49; e+=1) {
 		introFiles.push(`Intro_Scene/intro${e}.png`);
-		PS.imageLoad(introFiles[e-1],loadIntroImages);
-	}/*
+	}
+	PS.imageLoad(introFiles[introIndex],loadIntroImages);/*
 	for(var f = 1; f < 49; f+=1) {
 		outroFiles.push(`Outro_Scene/outro${e}.png`);
 		PS.imageLoad(outroFiles[f-1],loadOutroImages);
@@ -153,6 +153,13 @@ var loadCutscenes = function() {
 
 var loadIntroImages = function(image) {
 	introImages.push(image);
+	if(introIndex < 47) {
+		introIndex+=1;
+		PS.imageLoad(introFiles[introIndex],loadIntroImages);
+	}
+	else {
+		introIndex = 0;
+	}
 }
 
 var loadOutroImages = function(image) {
@@ -181,6 +188,8 @@ var loadScene = function() {
 	PS.keyRepeat(true, 10, 10);
 
 	PS.gridPlane(1);
+
+	PS.gridSize(GRID_WIDTH, GRID_HEIGHT+1);
 
 	for (var x = 0; x < GRID_WIDTH; x += 1) {
 		for (var y = 0; y < GRID_WIDTH; y += 1) {
