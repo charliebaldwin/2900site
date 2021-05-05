@@ -196,6 +196,7 @@ var introTimer = function() {
 		playIntro();
 	}
 	else {
+		PS.debug("intro image size was "+introImages.length+"\n");
 		isCutscene = false;
 		PS.timerStop(intro_time);
 		loadScene();
