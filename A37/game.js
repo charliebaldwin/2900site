@@ -179,10 +179,10 @@ var introTimer = function() {
 			PS.statusText("Athena: My child, for glory, you must fight.");
 		}
 		else if(introIndex == 21) {
-			PS.statusText("Athena: Destroy these barbarians and become legend.");
+			PS.statusText("Destroy these barbarians and become legend.");
 		}
 		else if(introIndex == 36) {
-			PS.statusText("Athena: Raise your spear, the enemy approaches.");
+			PS.statusText("Raise your spear, the enemy approaches.");
 		}
 		introIndex+=1;
 		PS.timerStop(intro_time);
@@ -657,34 +657,6 @@ var enemyCollide = function(s1, p1, s2, p2, type) {
 	}
 };
 
-var fadePlayerColor = function() {
-
-	PS.debug(PS.unmakeRGB(PS.spriteSolidColor(player), {}).r + " current player R\n");
-	if (fadeUp) {
-		var color = PS.unmakeRGB(PS.spriteSolidColor(player), {});
-		color.r += 5;
-		color.g += 5;
-		color.b += 5;
-		PS.debug(color.r + "\n");
-		PS.spriteSolidColor(player, color);
-		PS.debug(PS.unmakeRGB(PS.spriteSolidColor(player), {}).r + " current player R\n");
-
-
-		if (color.r >= PLAYER_COLOR_2.r) {
-			fadeUp = false;
-		}
-
-	} else {
-		var color = PS.unmakeRGB(PS.spriteSolidColor(player), {});
-		color.r -= 1;
-		color.g -= 1;
-		color.b -= 1;
-		if (color.r <= PLAYER_COLOR.r) {
-			fadeUp = true;
-		}
-		PS.spriteSolidColor(player, color);
-	}
-}
 var restart = function() {
 
 };
@@ -708,10 +680,9 @@ PS.exitGrid = function( options ) {};
 
 PS.keyDown = function( key, shift, ctrl, options ) {
 
-	var x = PS.spriteMove(player).x;
-	var y = PS.spriteMove(player).y;
-
 	if(playerControl && isCutscene == false) {
+		var x = PS.spriteMove(player).x;
+		var y = PS.spriteMove(player).y;
 		switch (key) {
 			case PS.KEY_ARROW_UP:
 			case 119:
