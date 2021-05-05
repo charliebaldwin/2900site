@@ -159,6 +159,7 @@ var loadIntroImages = function(image) {
 		PS.imageLoad(introFiles[introIndex],loadIntroImages);
 	}
 	else {
+		playIntro();
 		introIndex = 0;
 		playIntro();
 	}
@@ -196,7 +197,6 @@ var introTimer = function() {
 		playIntro();
 	}
 	else {
-		//PS.debug("intro image size was "+introImages.length+"\n");
 		isCutscene = false;
 		PS.timerStop(intro_time);
 		loadScene();
