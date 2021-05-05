@@ -94,7 +94,7 @@ var ROUND_TWO =   {enemyCount: 20, enemyRate: DEFAULT_ENEMY_RATE - 5,      enemy
 var ROUND_THREE = {enemyCount: 25, enemyRate: DEFAULT_ENEMY_RATE - 15, enemyCap: 6, enemySpeed: DEFAULT_ENEMY_SPEED - 16, enemiesSpawned: 0};
 
 var rounds = [ROUND_ONE, ROUND_TWO, ROUND_THREE];
-var currentRound = 0;
+var currentRound = 2;
 var introFiles = [];
 var introIndex = 0;
 var introImages = [];
@@ -209,6 +209,12 @@ var playOutro = function() {
 var outroTimer = function() {
 	if(outroIndex < outroImages.length) {
 		PS.imageBlit(outroImages[outroIndex], 0, 0);
+		if(outroIndex == 9) {
+			PS.statusText("Child: Daddy? Have you seen my daddy?");
+		}
+		else if(outroIndex == 18) {
+			PS.statusText("Where is he? He was just protecting us...\n");
+		}
 		outroIndex+=1;
 		PS.timerStop(outro_time);
 		playOutro();
@@ -640,6 +646,7 @@ var timer = function() {
 			currentRound += 1;
 			if (currentRound >= rounds.length) {
 				isCutscene = true;
+				PS.statusText("");
 				playOutro();
 			}
 			PS.timerStop(game_time);
