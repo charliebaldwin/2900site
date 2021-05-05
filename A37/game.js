@@ -95,6 +95,12 @@ var ROUND_THREE = {enemyCount: 25, enemyRate: DEFAULT_ENEMY_RATE - 15, enemyCap:
 
 var rounds = [ROUND_ONE, ROUND_TWO, ROUND_THREE];
 var currentRound = 0;
+var introFiles = [];
+var introIndex = 0;
+var introImages = [];
+var outroFiles = [];
+var outroIndex = 0;
+var outroImages = [];
 
 var DEATH_QUOTES = ["Though you suffer, you rise again.", "Don't fret my child, you will prevail.", "Death is a chance for a new life."];
 var WIN_QUOTES = ["Your strength has grown tenfold.", "I am proud of you, my child.", "A well-fought victory."];
@@ -111,15 +117,70 @@ var SPEAR_COLOR = 0xbbbbbb;
 
 var game_time = "";
 var restarting = "";
-
+var intro_time = "";
+var outro_time = "";
 
 var playerControl = true;
 
 PS.init = function( system, options ) {
 
+	loadCutscenes();
+	playIntro();
+	const TEAM = "teamiris";
+
+	PS.dbLogin( "imgd2900", TEAM, function ( id, user ) {
+		if ( user === PS.ERROR ) {
+			return;
+		}
+		PS.dbEvent( TEAM, "startup", user );
+		PS.dbSend( TEAM, PS.CURRENT, { discard : true } );
+	}, { active : false } );
+	
+	// Change the false in the final line above to true
+	// before deploying the code to your Web site.
+};
+
+var loadCutscenes = function() {
+	for(var e = 1; e < 49; e+=1) {
+		introFiles.push(`Intro_Scene/intro${e}.png`);
+		PS.imageLoad(introFiles[e-1],loadIntroImages);
+	}/*
+	for(var f = 1; f < 49; f+=1) {
+		outroFiles.push(`Outro_Scene/outro${e}.png`);
+		PS.imageLoad(outroFiles[f-1],loadOutroImages);
+	}*/
+}
+
+var loadIntroImages = function(image) {
+	introImages.push(image);
+}
+
+var loadOutroImages = function(image) {
+	outroImages.push(image);
+}
+
+var playIntro = function() {
+	intro_time = PS.timerStart(30, introTimer);
+}
+
+var introTimer = function() {
+	if(introIndex <= introImages.length) {
+		PS.imageBlit(introImages[introIndex], 0, 0);
+		introIndex+=1;
+		PS.timerStop(intro_time);
+		playIntro();
+	}
+	else {
+		isCutscene = false;
+		PS.timerStop(intro_time);
+		loadScene();
+	}
+}
+
+var loadScene = function() {
 	PS.keyRepeat(true, 10, 10);
 
-	PS.gridPlane(0);
+	PS.gridPlane(1);
 
 	PS.gridSize(GRID_WIDTH, GRID_HEIGHT+1);
 
@@ -155,7 +216,7 @@ PS.init = function( system, options ) {
 	PS.color(POWER_RAPID.slot.x,  POWER_RAPID.slot.y, POWER_RAPID.color);
 	PS.glyph(POWER_RAPID.slot.x,  POWER_RAPID.slot.y, POWER_RAPID.glyph);
 	PS.alpha(POWER_RAPID.slot.x,  POWER_RAPID.slot.y, 0);
-	PS.gridPlane(0);
+	PS.gridPlane(1);
 
 
 	player = PS.spriteSolid(1, 1);
@@ -176,24 +237,8 @@ PS.init = function( system, options ) {
 	PS.audioLoad("fx_shoot7");
 	PS.audioLoad("fx_coin5");
 
-
-
 	loadRound();
-
-	const TEAM = "teamiris";
-
-	PS.dbLogin( "imgd2900", TEAM, function ( id, user ) {
-		if ( user === PS.ERROR ) {
-			return;
-		}
-		PS.dbEvent( TEAM, "startup", user );
-		PS.dbSend( TEAM, PS.CURRENT, { discard : true } );
-	}, { active : false } );
-	
-	// Change the false in the final line above to true
-	// before deploying the code to your Web site.
-};
-
+}
 
 var loadRound = function () {
 
