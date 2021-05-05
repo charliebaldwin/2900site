@@ -146,11 +146,11 @@ var loadCutscenes = function() {
 	for(var e = 1; e < 49; e+=1) {
 		introFiles.push(`Intro_Scene/intro${e}.png`);
 	}
-	PS.imageLoad(introFiles[introIndex],loadIntroImages);/*
-	for(var f = 1; f < 49; f+=1) {
+	PS.imageLoad(introFiles[introIndex],loadIntroImages);
+	for(var f = 1; f < 31; f+=1) {
 		outroFiles.push(`Outro_Scene/outro${e}.png`);
-		PS.imageLoad(outroFiles[f-1],loadOutroImages);
-	}*/
+	}
+	PS.imageLoad(outroFiles[outroIndex],loadOutroImages);
 }
 
 var loadIntroImages = function(image) {
@@ -166,6 +166,13 @@ var loadIntroImages = function(image) {
 
 var loadOutroImages = function(image) {
 	outroImages.push(image);
+	if(outroIndex < 29) {
+		outroIndex+=1;
+		PS.imageLoad(outroFiles[outroIndex],loadOutroImages);
+	}
+	else {
+		outroIndex = 0;
+	}
 }
 
 var playIntro = function() {
@@ -178,7 +185,7 @@ var introTimer = function() {
 		if(introIndex == 12) {
 			PS.statusText("Athena: My child, for glory, you must fight.");
 		}
-		else if(introIndex == 21) {
+		else if(introIndex == 23) {
 			PS.statusText("Destroy these barbarians and become legend.");
 		}
 		else if(introIndex == 36) {
@@ -192,6 +199,23 @@ var introTimer = function() {
 		isCutscene = false;
 		PS.timerStop(intro_time);
 		loadScene();
+	}
+}
+
+var playOutro = function() {
+	intro_time = PS.timerStart(30, outroTimer);
+}
+
+var outroTimer = function() {
+	if(outroIndex < outroImages.length) {
+		PS.imageBlit(outroImages[outroIndex], 0, 0);
+		outroIndex+=1;
+		PS.timerStop(outro_time);
+		playOutro();
+	}
+	else {
+		isCutscene = false;
+		PS.timerStop(outro_time);
 	}
 }
 
@@ -615,11 +639,14 @@ var timer = function() {
 			updateStatus(WIN_QUOTES[PS.random(WIN_QUOTES.length) - 1]);
 			currentRound += 1;
 			if (currentRound >= rounds.length) {
-				currentRound = 0;
+				isCutscene = true;
+				playOutro();
 			}
 			PS.timerStop(game_time);
 			playerControl = false;
-			restarting = PS.timerStart(180, loadRound);
+			if(isCutscene == false) {
+				restarting = PS.timerStart(180, loadRound);
+			}
 		}
 	}
 }
