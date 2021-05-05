@@ -148,7 +148,7 @@ var loadCutscenes = function() {
 	}
 	PS.imageLoad(introFiles[introIndex],loadIntroImages);
 	for(var f = 1; f < 31; f+=1) {
-		outroFiles.push(`Outro_Scene/outro${e}.png`);
+		outroFiles.push(`Outro_Scene/outro${f}.png`);
 	}
 	PS.imageLoad(outroFiles[outroIndex],loadOutroImages);
 }
