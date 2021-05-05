@@ -304,7 +304,6 @@ var timer = function() {
 		}
 		PS.gridPlane(0);
 
-
 // ~~~~~~ SPAWN ENEMIES ~~~~~~
 
 		if (enemyRate.cooldown >= enemyRate.max && enemies.length < enemyCap && rounds[currentRound].enemiesSpawned < rounds[currentRound].enemyCount) {
@@ -347,7 +346,6 @@ var timer = function() {
 
 		}
 		enemyRate.cooldown += 1;
-
 
 // ~~~~~~ MOVE ENEMIES ~~~~~~
 
@@ -569,6 +567,7 @@ var updateStatus = function (text) {
 }
 
 var spearCollide = function(s1, p1, s2, p2, type) {
+
 	if (s2!=player) {
 		if(type === PS.SPRITE_OVERLAP) {
 			if (!POWER_PIERCE.active) {
@@ -580,13 +579,6 @@ var spearCollide = function(s1, p1, s2, p2, type) {
 			mark_delete_enemy.push(s2);
 		}
 	}
-	/*
-	else if(s2!=player && type===PS.SPRITE_OVERLAP ) {
-		if (!POWER_PIERCE.active) {
-			mark_delete_spear.push(s1);
-		}
-		mark_delete_enemy.push(s2);
-	}*/
 }
 
 var enemyCollide = function(s1, p1, s2, p2, type) {
@@ -602,6 +594,34 @@ var enemyCollide = function(s1, p1, s2, p2, type) {
 	}
 };
 
+var fadePlayerColor = function() {
+
+	PS.debug(PS.unmakeRGB(PS.spriteSolidColor(player), {}).r + " current player R\n");
+	if (fadeUp) {
+		var color = PS.unmakeRGB(PS.spriteSolidColor(player), {});
+		color.r += 5;
+		color.g += 5;
+		color.b += 5;
+		PS.debug(color.r + "\n");
+		PS.spriteSolidColor(player, color);
+		PS.debug(PS.unmakeRGB(PS.spriteSolidColor(player), {}).r + " current player R\n");
+
+
+		if (color.r >= PLAYER_COLOR_2.r) {
+			fadeUp = false;
+		}
+
+	} else {
+		var color = PS.unmakeRGB(PS.spriteSolidColor(player), {});
+		color.r -= 1;
+		color.g -= 1;
+		color.b -= 1;
+		if (color.r <= PLAYER_COLOR.r) {
+			fadeUp = true;
+		}
+		PS.spriteSolidColor(player, color);
+	}
+}
 var restart = function() {
 
 };
@@ -629,7 +649,6 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	var y = PS.spriteMove(player).y;
 
 	if(playerControl && isCutscene == false) {
-
 		switch (key) {
 			case PS.KEY_ARROW_UP:
 			case 119:
