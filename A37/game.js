@@ -39,7 +39,15 @@ If you don't use JSHint (or are using it with a configuration file), you can saf
 
 "use strict"; // Do NOT delete this directive!
 
-
+/*
+PS.init( system, options )
+Called once after engine is initialized but before event-polling begins.
+This function doesn't have to do anything, although initializing the grid dimensions with PS.gridSize() is recommended.
+If PS.grid() is not called, the default grid dimensions (8 x 8 beads) are applied.
+Any value returned is ignored.
+[system : Object] = A JavaScript object containing engine and host platform information properties; see API documentation for details.
+[options : Object] = A JavaScript object with optional data properties; see API documentation for details.
+*/
 var GRID_HEIGHT = 15;
 var GRID_WIDTH = 15;
 
@@ -58,11 +66,13 @@ var LEFT_GLYPH = "⮜";
 
 var TICK_RATE = 1;
 
+var isCutscene = true;
+
 var DEFAULT_SPEAR_SPEED = 3;
 var DEFAULT_SPEAR_RATE = 25;
 var POWERED_SPEAR_RATE = 12;
 var DEFAULT_ENEMY_SPEED = 50;
-var DEFAULT_ENEMY_RATE = 75;
+var DEFAULT_ENEMY_RATE = 70;
 
 var spearSpeed = {cooldown: 0, max: DEFAULT_SPEAR_SPEED};
 var spearRate = {cooldown: 0, max: DEFAULT_SPEAR_RATE};
@@ -70,7 +80,7 @@ var enemySpeed = {cooldown: 0, max: DEFAULT_ENEMY_SPEED};
 var enemyRate = {cooldown: 0, max: DEFAULT_ENEMY_RATE};
 
 var POWER_PIERCE = {color: 0xeeeeee, glyph: "↛", id: 1, duration: 600, timer: 0, active: false, slot: {x: 0, y: GRID_HEIGHT}, sound: "fx_powerup1", quotes: ["Pierce through the legions of foes."]};
-var POWER_RAPID  = {color: 0xdddddd, glyph: "⇶", id: 2, duration: 240, timer: 0, active: false, slot: {x: 1, y: GRID_HEIGHT}, sound: "fx_powerup4", quotes: ["Attack your foe with fury and haste."]};
+var POWER_RAPID  = {color: 0xdddddd, glyph: "✥", id: 2, duration: 240, timer: 0, active: false, slot: {x: 1, y: GRID_HEIGHT}, sound: "fx_powerup4", quotes: ["Attack your foe with fury and haste."]};
 var POWERUPS = [0, POWER_PIERCE, POWER_RAPID];
 
 var POWERUP_CHANCE = 20;
@@ -79,9 +89,9 @@ var enemyCap = 6;
 var enemies = [];
 var mark_delete_enemy = [];
 
-var ROUND_ONE =   {enemyCount: 10, enemyRate: DEFAULT_ENEMY_RATE + 25, enemyCap: 5, enemySpeed: DEFAULT_ENEMY_SPEED + 10,     enemiesSpawned: 0};
-var ROUND_TWO =   {enemyCount: 20, enemyRate: DEFAULT_ENEMY_RATE,      enemyCap: 7, enemySpeed: DEFAULT_ENEMY_SPEED - 8, enemiesSpawned: 0};
-var ROUND_THREE = {enemyCount: 20, enemyRate: DEFAULT_ENEMY_RATE - 15, enemyCap: 4, enemySpeed: DEFAULT_ENEMY_SPEED - 16, enemiesSpawned: 0};
+var ROUND_ONE =   {enemyCount: 10, enemyRate: DEFAULT_ENEMY_RATE + 5, enemyCap: 5, enemySpeed: DEFAULT_ENEMY_SPEED,     enemiesSpawned: 0};
+var ROUND_TWO =   {enemyCount: 20, enemyRate: DEFAULT_ENEMY_RATE - 5,      enemyCap: 6, enemySpeed: DEFAULT_ENEMY_SPEED - 8, enemiesSpawned: 0};
+var ROUND_THREE = {enemyCount: 25, enemyRate: DEFAULT_ENEMY_RATE - 15, enemyCap: 6, enemySpeed: DEFAULT_ENEMY_SPEED - 16, enemiesSpawned: 0};
 
 var rounds = [ROUND_ONE, ROUND_TWO, ROUND_THREE];
 var currentRound = 0;
@@ -95,13 +105,9 @@ var percentComplete = 0;
 
 var resetGame = false;
 
-var PLAYER_COLOR = {r: 50, g: 50, b: 50};
-var PLAYER_COLOR_2 = {r: 75, g: 75, b: 75};
+var PLAYER_COLOR = 0x333333;
 var ENEMY_COLOR = 0x777777;
 var SPEAR_COLOR = 0xbbbbbb;
-
-var fadeUp = true;
-var playerFadeTimer = "";
 
 var game_time = "";
 var restarting = "";
@@ -122,8 +128,7 @@ PS.init = function( system, options ) {
 			var colorVar = 255 - PS.random(10);
 			PS.color(x, y, [colorVar, colorVar, colorVar]);
 		}
-
-		}
+	}
 
 	PS.color(0, PS.ALL, PS.COLOR_BLACK);
 	PS.color(PS.ALL, 0, PS.COLOR_BLACK);
@@ -159,7 +164,6 @@ PS.init = function( system, options ) {
 	PS.spriteMove(player, 7, 7);
 	PS.glyph(7, 7, UP_GLYPH);
 	PS.glyphColor(7, 7, PS.COLOR_WHITE);
-	playerFadeTimer = PS.timerStart(5, fadePlayerColor);
 
 	//game_time = PS.timerStart(TICK_RATE, timer);
 	PS.statusText("Athena's Blessing");
@@ -173,38 +177,8 @@ PS.init = function( system, options ) {
 	PS.audioLoad("fx_coin5");
 
 
-	// show controls on screen at start
-	{
-		PS.debug("Controls\n");
-		PS.glyphAlpha(PS.ALL, PS.ALL, 255);
-		PS.glyphColor(PS.ALL, PS.ALL, PS.COLOR_BLACK);
-
-		PS.glyph(3, 2, "W");
-		PS.glyph(2, 3, "A");
-		PS.glyph(3, 3, "S");
-		PS.glyph(4, 3, "D");
-		PS.glyph(5, 3, "␣");
-
-		PS.glyphFade(3, 2, 300);
-		PS.glyphFade(2, 3, 300);
-		PS.glyphFade(3, 3, 300);
-		PS.glyphFade(4, 3, 300);
-		PS.glyphFade(5, 3, 300);
-
-		PS.glyphAlpha(3, 2, 0);
-		PS.glyphAlpha(2, 3, 0);
-		PS.glyphAlpha(3, 3, 0);
-		PS.glyphAlpha(4, 3, 0);
-		PS.glyphAlpha(5, 3, 0);
-
-
-
-	}
-
 
 	loadRound();
-
-
 
 	const TEAM = "teamiris";
 
@@ -252,7 +226,6 @@ var loadRound = function () {
 
 	PS.glyph(7, 7, UP_GLYPH);
 	PS.glyphColor(7, 7, PS.COLOR_WHITE);
-	PS.glyphAlpha(7, 7, 255);
 	player_direction = 1;
 
 
@@ -271,7 +244,6 @@ var createPowerUp = function (x, y, id) {
 	PS.gridPlane(2);
 	PS.audioPlay("fx_coin5", {volume: 0.2});
 
-
 	PS.alpha(x, y, 255);
 	PS.color(x, y, POWERUPS[id].color);
 	PS.glyph(x, y, POWERUPS[id].glyph);
@@ -287,302 +259,305 @@ var createPowerUp = function (x, y, id) {
 
 // GLOBAL GAME LOOP
 var timer = function() {
+	if(isCutscene == false) {
+		var x = PS.spriteMove(player).x;
+		var y = PS.spriteMove(player).y;
 
 
-	var x = PS.spriteMove(player).x;
-	var y = PS.spriteMove(player).y;
-
-
-	if (POWER_PIERCE.active) {
-		POWER_PIERCE.timer += 1;
-		if (POWER_PIERCE.timer >= POWER_PIERCE.duration) {
-			POWER_PIERCE.active = false;
-			POWER_PIERCE.timer = 0;
+		if (POWER_PIERCE.active) {
+			POWER_PIERCE.timer += 1;
+			if (POWER_PIERCE.timer >= POWER_PIERCE.duration) {
+				POWER_PIERCE.active = false;
+				POWER_PIERCE.timer = 0;
+			}
 		}
-	}
-	if (POWER_RAPID.active) {
-		POWER_RAPID.timer += 1;
-		spearRate.max = POWERED_SPEAR_RATE;
-		if (POWER_RAPID.timer >= POWER_RAPID.duration) {
-			POWER_RAPID.active = false;
-			spearRate.max = DEFAULT_SPEAR_RATE;
-			POWER_RAPID.timer = 0;
+		if (POWER_RAPID.active) {
+			POWER_RAPID.timer += 1;
+			spearRate.max = POWERED_SPEAR_RATE;
+			if (POWER_RAPID.timer >= POWER_RAPID.duration) {
+				POWER_RAPID.active = false;
+				spearRate.max = DEFAULT_SPEAR_RATE;
+				POWER_RAPID.timer = 0;
+			}
 		}
-	}
 
 
-	// CHECK FOR POWERUPS
-	PS.gridPlane(2);
-	var data = PS.data(x, y);
-	if (data > 0) {
-		PS.alpha(x, y, 0);
-		PS.radius(x, y, 0);
-		PS.border(x, y, 0);
-		POWERUPS[data].active = true;
-		POWERUPS[data].timer = 0;
+		// CHECK FOR POWERUPS
+		PS.gridPlane(2);
+		var data = PS.data(x, y);
+		if (data > 0) {
+			PS.alpha(x, y, 0);
+			PS.radius(x, y, 0);
+			PS.border(x, y, 0);
+			POWERUPS[data].active = true;
+			POWERUPS[data].timer = 0;
 
-		PS.fade(POWERUPS[data].slot.x, POWERUPS[data].slot.y, 0);
-		PS.alpha(POWERUPS[data].slot.x, POWERUPS[data].slot.y, 255);
-		PS.fade(POWERUPS[data].slot.x, POWERUPS[data].slot.y, POWERUPS[data].duration);
-		PS.alpha(POWERUPS[data].slot.x, POWERUPS[data].slot.y, 0);
+			PS.fade(POWERUPS[data].slot.x, POWERUPS[data].slot.y, 0);
+			PS.alpha(POWERUPS[data].slot.x, POWERUPS[data].slot.y, 255);
+			PS.fade(POWERUPS[data].slot.x, POWERUPS[data].slot.y, POWERUPS[data].duration);
+			PS.alpha(POWERUPS[data].slot.x, POWERUPS[data].slot.y, 0);
 
-		updateStatus(POWERUPS[data].quotes[PS.random(POWERUPS[data].quotes.length) - 1]);
+			updateStatus(POWERUPS[data].quotes[PS.random(POWERUPS[data].quotes.length) - 1]);
 
-		PS.audioPlay(POWERUPS[data].sound, {volume: 0.3});
-		PS.data(x, y, 0);
-	}
-	PS.gridPlane(0);
-
+			PS.audioPlay(POWERUPS[data].sound, {volume: 0.3});
+			PS.data(x, y, 0);
+		}
+		PS.gridPlane(0);
 
 // ~~~~~~ SPAWN ENEMIES ~~~~~~
 
-	if(enemyRate.cooldown >= enemyRate.max && enemies.length < enemyCap && rounds[currentRound].enemiesSpawned < rounds[currentRound].enemyCount) {
-		enemyRate.cooldown = 0;
+		if (enemyRate.cooldown >= enemyRate.max && enemies.length < enemyCap && rounds[currentRound].enemiesSpawned < rounds[currentRound].enemyCount) {
+			enemyRate.cooldown = 0;
 
-		//create the sprite
-		var enemySprite = PS.spriteSolid(1,1);
-		PS.spritePlane(enemySprite, 3);
-		PS.spriteSolidColor(enemySprite,ENEMY_COLOR);
+			//create the sprite
+			var enemySprite = PS.spriteSolid(1, 1);
+			PS.spritePlane(enemySprite, 3);
+			PS.spriteSolidColor(enemySprite, ENEMY_COLOR);
 
-		// pick a spot to spawn at
-		var edge = PS.random(4);  // which edge to spawn on (up/right/down/left)
-		var position = PS.random(GRID_HEIGHT)-1; // which bead on that edge to spawn at
+			// pick a spot to spawn at
+			var edge = PS.random(4);  // which edge to spawn on (up/right/down/left)
+			var position = PS.random(GRID_HEIGHT) - 1; // which bead on that edge to spawn at
 
-		var nextSpot = [0, 0];
+			var nextSpot = [0, 0];
 
-		switch(edge) {
-			case 1:
-				PS.spriteMove(enemySprite,position,0);
-				nextSpot = [position, 0];
-				break;
-			case 2:
-				PS.spriteMove(enemySprite,GRID_WIDTH-1,position);
-				nextSpot = [GRID_WIDTH-1, position];
-				break;
-			case 3:
-				PS.spriteMove(enemySprite,position,GRID_HEIGHT-1);
-				nextSpot = [position, GRID_HEIGHT-1];
-				break;
-			case 4:
-				PS.spriteMove(enemySprite,0,position);
-				nextSpot = [0, position]
-				break;
+			switch (edge) {
+				case 1:
+					PS.spriteMove(enemySprite, position, 0);
+					nextSpot = [position, 0];
+					break;
+				case 2:
+					PS.spriteMove(enemySprite, GRID_WIDTH - 1, position);
+					nextSpot = [GRID_WIDTH - 1, position];
+					break;
+				case 3:
+					PS.spriteMove(enemySprite, position, GRID_HEIGHT - 1);
+					nextSpot = [position, GRID_HEIGHT - 1];
+					break;
+				case 4:
+					PS.spriteMove(enemySprite, 0, position);
+					nextSpot = [0, position]
+					break;
+			}
+
+			// push the enemy to the array, and initialize them with their next position to go to
+			var enemy = {sprite: enemySprite, next: nextSpot};
+			rounds[currentRound].enemiesSpawned += 1;
+			enemies.push(enemy);
+
 		}
-
-		// push the enemy to the array, and initialize them with their next position to go to
-		var enemy = {sprite:enemySprite, next:nextSpot};
-		rounds[currentRound].enemiesSpawned += 1;
-		enemies.push(enemy);
-
-	}
-	enemyRate.cooldown += 1;
-
-
+		enemyRate.cooldown += 1;
 
 // ~~~~~~ MOVE ENEMIES ~~~~~~
 
-	if (enemySpeed.cooldown >= enemySpeed.max) {
+		if (enemySpeed.cooldown >= enemySpeed.max) {
 
-		enemySpeed.cooldown = 0;
+			enemySpeed.cooldown = 0;
 
-		for(var z = 0; z < enemies.length; z++) {
+			for (var z = 0; z < enemies.length; z++) {
 
-			var sprite = enemies[z].sprite;
-			var x1 = PS.spriteMove(sprite).x;
-			var y1 = PS.spriteMove(sprite).y;
-			var line = PS.line(x1,y1,x,y);
-			var nextSpot = line[0];
+				var sprite = enemies[z].sprite;
+				var x1 = PS.spriteMove(sprite).x;
+				var y1 = PS.spriteMove(sprite).y;
+				var line = PS.line(x1, y1, x, y);
+				var nextSpot = line[0];
 
-			for (var e = 0; e < enemies.length; e+=1 ){
-				var otherSpot = [PS.spriteMove(enemies[e].sprite).x, PS.spriteMove(enemies[e].sprite).y];
+				for (var e = 0; e < enemies.length; e += 1) {
+					var otherSpot = [PS.spriteMove(enemies[e].sprite).x, PS.spriteMove(enemies[e].sprite).y];
 
-				if (nextSpot === enemies[e].next || nextSpot === otherSpot) {
-					nextSpot = [x1, y1];
+					if (nextSpot === enemies[e].next || nextSpot === otherSpot) {
+						nextSpot = [x1, y1];
+					}
 				}
+				enemies[z].next = nextSpot;
+
+				PS.spriteCollide(sprite, enemyCollide);
+
+				PS.spriteMove(sprite, enemies[z].next[0], enemies[z].next[1]);
+
+
 			}
-			enemies[z].next = nextSpot;
-
-			PS.spriteCollide(sprite, enemyCollide);
-
-			PS.spriteMove(sprite, enemies[z].next[0],enemies[z].next[1]);
-
-
-
 		}
-	}
-	enemySpeed.cooldown += 1;
-
+		enemySpeed.cooldown += 1;
 
 
 // ~~~~~~ MOVE SPEARS ~~~~~~
-	var spear_keep = [];
-	if (spearSpeed.cooldown >= spearSpeed.max) {
-		spearSpeed.cooldown = 0;
+		var spear_keep = [];
+		if (spearSpeed.cooldown >= spearSpeed.max) {
+			spearSpeed.cooldown = 0;
 
-		for(var i = 0; i < player_spears.length; i++) {
-			var spear_x = PS.spriteMove(player_spears[i].sprite).x;
-			var spear_y = PS.spriteMove(player_spears[i].sprite).y;
-			switch(player_spears[i].direction) {
-				case 1:
-					if(spear_y > 0) {
-						PS.spriteMove(player_spears[i].sprite, spear_x, spear_y-1);
-						spear_keep.push(player_spears[i]);
-					}
-					else {
-						PS.spriteDelete(player_spears[i].sprite);
-					}
-					break;
-				case 2:
-					if(spear_x < GRID_WIDTH-1) {
-						PS.spriteMove(player_spears[i].sprite, spear_x+1, spear_y);
-						spear_keep.push(player_spears[i]);
-					}
-					else {
-						PS.spriteDelete(player_spears[i].sprite);
-					}
-					break;
-				case 3:
-					if(spear_y < GRID_HEIGHT-1) {
-						PS.spriteMove(player_spears[i].sprite, spear_x, spear_y+1);
-						spear_keep.push(player_spears[i]);
-					}
-					else {
-						PS.spriteDelete(player_spears[i].sprite);
-					}
-					break;
-				case 4:
-					if(spear_x > 0) {
-						PS.spriteMove(player_spears[i].sprite, spear_x-1, spear_y);
-						spear_keep.push(player_spears[i]);
-					}
-					else {
-						PS.spriteDelete(player_spears[i].sprite);
-					}
-					break;
+			for (var i = 0; i < player_spears.length; i++) {
+				var spear_x = PS.spriteMove(player_spears[i].sprite).x;
+				var spear_y = PS.spriteMove(player_spears[i].sprite).y;
+				switch (player_spears[i].direction) {
+					case 1:
+						if (spear_y > 0) {
+							PS.spriteMove(player_spears[i].sprite, spear_x, spear_y - 1);
+							spear_keep.push(player_spears[i]);
+						} else {
+							PS.spriteDelete(player_spears[i].sprite);
+						}
+						break;
+					case 2:
+						if (spear_x < GRID_WIDTH - 1) {
+							PS.spriteMove(player_spears[i].sprite, spear_x + 1, spear_y);
+							spear_keep.push(player_spears[i]);
+						} else {
+							PS.spriteDelete(player_spears[i].sprite);
+						}
+						break;
+					case 3:
+						if (spear_y < GRID_HEIGHT - 1) {
+							PS.spriteMove(player_spears[i].sprite, spear_x, spear_y + 1);
+							spear_keep.push(player_spears[i]);
+						} else {
+							PS.spriteDelete(player_spears[i].sprite);
+						}
+						break;
+					case 4:
+						if (spear_x > 0) {
+							PS.spriteMove(player_spears[i].sprite, spear_x - 1, spear_y);
+							spear_keep.push(player_spears[i]);
+						} else {
+							PS.spriteDelete(player_spears[i].sprite);
+						}
+						break;
+				}
 			}
+
+			player_spears = spear_keep;
 		}
-
-		player_spears = spear_keep;
-	}
-	spearSpeed.cooldown += 1;
-
+		spearSpeed.cooldown += 1;
 
 
 // ~~~~~~ THROW SPEARS ~~~~~~
-	if (spearRate.cooldown >= spearRate.max && player_shoot) {
-		spearRate.cooldown = 0;
+		if (spearRate.cooldown >= spearRate.max && player_shoot) {
+			spearRate.cooldown = 0;
 
-		PS.audioPlay("fx_swoosh", {volume: 0.2});
-
-		var spearSprite = PS.spriteSolid(1,1);
-		PS.spritePlane(spearSprite, 3);
-		PS.spriteSolidColor(spearSprite, SPEAR_COLOR);
-		if(player_direction===1) {
-			PS.spriteMove(spearSprite,x,y-1);
-		}
-		else if(player_direction===2) {
-			PS.spriteMove(spearSprite,x+1,y);
-		}
-		else if(player_direction===3) {
-			PS.spriteMove(spearSprite,x,y+1);
-		}
-		else {
-			PS.spriteMove(spearSprite,x-1,y);
-		}
-		PS.spriteCollide(spearSprite, spearCollide);
-		var spear = {sprite:spearSprite, direction:player_direction};
-		player_spears.push(spear);
-		spear_time = MAX_SPEAR_TIME;
-
-	}
-	spearRate.cooldown += 1;
-
-
-
-	for(var e = 0; e < mark_delete_spear.length; e++) {
-		spear_keep = [];
-		for(var f = 0; f < player_spears.length; f++) {
-			if(player_spears[f].sprite !== mark_delete_spear[e]) {
-				spear_keep.push(player_spears[f]);
+			PS.audioPlay("fx_swoosh", {volume: 0.2});
+			if (!POWER_RAPID.active) {
+				var spearSprite = PS.spriteSolid(1, 1);
+				PS.spritePlane(spearSprite, 3);
+				PS.spriteSolidColor(spearSprite, SPEAR_COLOR);
+				if (player_direction === 1) {
+					PS.spriteMove(spearSprite, x, y - 1);
+				} else if (player_direction === 2) {
+					PS.spriteMove(spearSprite, x + 1, y);
+				} else if (player_direction === 3) {
+					PS.spriteMove(spearSprite, x, y + 1);
+				} else {
+					PS.spriteMove(spearSprite, x - 1, y);
+				}
+				PS.spriteCollide(spearSprite, spearCollide);
+				var spear = {sprite: spearSprite, direction: player_direction};
+				player_spears.push(spear);
+			} else if (POWER_RAPID.active) {
+				for (var d = 1; d < 5; d += 1) {
+					var spearSprite1 = PS.spriteSolid(1, 1);
+					PS.spritePlane(spearSprite1, 3);
+					PS.spriteSolidColor(spearSprite1, SPEAR_COLOR);
+					if (d === 1) {
+						PS.spriteMove(spearSprite1, x, y - 1);
+					} else if (d === 2) {
+						PS.spriteMove(spearSprite1, x + 1, y);
+					} else if (d === 3) {
+						PS.spriteMove(spearSprite1, x, y + 1);
+					} else {
+						PS.spriteMove(spearSprite1, x - 1, y);
+					}
+					PS.spriteCollide(spearSprite1, spearCollide);
+					var spear = {sprite: spearSprite1, direction: d};
+					player_spears.push(spear);
+				}
 			}
-			else {
-				PS.spriteDelete(player_spears[f].sprite);
-			}
+			spear_time = MAX_SPEAR_TIME;
+
 		}
-		player_spears = spear_keep;
-		spear_keep = [];
-	}
+		spearRate.cooldown += 1;
 
-	var enemies_keep = [];
-	for(var g = 0; g < mark_delete_enemy.length; g++) {
-		for(var h = 0; h < enemies.length; h++) {
-			if(enemies[h].sprite !== mark_delete_enemy[g]) {
-				enemies_keep.push(enemies[h]);
+
+		for (var e = 0; e < mark_delete_spear.length; e++) {
+			spear_keep = [];
+			for (var f = 0; f < player_spears.length; f++) {
+				if (player_spears[f].sprite !== mark_delete_spear[e]) {
+					spear_keep.push(player_spears[f]);
+				} else {
+					PS.spriteDelete(player_spears[f].sprite);
+				}
 			}
-			else {
-				var ex = PS.spriteMove(enemies[h].sprite).x;
-				var ey = PS.spriteMove(enemies[h].sprite).y;
+			player_spears = spear_keep;
+			spear_keep = [];
+		}
 
-				PS.spriteDelete(enemies[h].sprite);
-				PS.audioPlay("fx_shoot7", {volume: 0.3});
+		var enemies_keep = [];
+		for (var g = 0; g < mark_delete_enemy.length; g++) {
+			for (var h = 0; h < enemies.length; h++) {
+				if (enemies[h].sprite !== mark_delete_enemy[g]) {
+					enemies_keep.push(enemies[h]);
+				} else {
+					var ex = PS.spriteMove(enemies[h].sprite).x;
+					var ey = PS.spriteMove(enemies[h].sprite).y;
 
-				if (ex > 0 && ex < GRID_WIDTH - 1 && ey > 0 && ey < GRID_HEIGHT - 1) {
-					if (PS.random(100) < POWERUP_CHANCE) {
-						var power = PS.random(POWERUPS.length - 1);
-						createPowerUp(ex, ey, power);
+					PS.spriteDelete(enemies[h].sprite);
+					PS.audioPlay("fx_shoot7", {volume: 0.3});
+
+					if (ex > 0 && ex < GRID_WIDTH - 1 && ey > 0 && ey < GRID_HEIGHT - 1) {
+						if (PS.random(100) < POWERUP_CHANCE) {
+							var power = PS.random(POWERUPS.length - 1);
+							createPowerUp(ex, ey, power);
+						}
 					}
 				}
 			}
+			enemies = enemies_keep;
+			enemies_keep = [];
 		}
-		enemies = enemies_keep;
-		enemies_keep = [];
-	}
 
-	if(spear_time > 0) {
-		spear_time -= 1;
-	}
+		if (spear_time > 0) {
+			spear_time -= 1;
+		}
 
-	// update status text with percent
-	percentComplete = (Math.floor( (rounds[currentRound].enemiesSpawned / rounds[currentRound].enemyCount) * 100 ));
-	if (!STATUS_MANAGER.locked) {
-		PS.statusText("Round " + (currentRound + 1) + ": " + percentComplete + "% complete");
-	}
+		// update status text with percent
+		percentComplete = (Math.floor((rounds[currentRound].enemiesSpawned / rounds[currentRound].enemyCount) * 100));
+		if (!STATUS_MANAGER.locked) {
+			PS.statusText("Round " + (currentRound + 1) + ": " + percentComplete + "% complete");
+		}
 
 
 // ~~~~~ DEATH ~~~~~
-	if(resetGame) {
-		playerControl = false;
-		//PS.statusText("You died, restarting round...");
-		updateStatus(DEATH_QUOTES[PS.random(DEATH_QUOTES.length) - 1]);
-		PS.audioPlay("fx_shoot8", {volume: 0.3});
-		restarting = PS.timerStart(180, loadRound);
-		PS.spriteShow(player, false);
-		PS.glyph(x, y, 0);
-		PS.spriteMove(player, 7, 7);
+		if (resetGame) {
+			playerControl = false;
+			//PS.statusText("You died, restarting round...");
+			updateStatus(DEATH_QUOTES[PS.random(DEATH_QUOTES.length) - 1]);
+			PS.audioPlay("fx_shoot8", {volume: 0.3});
+			restarting = PS.timerStart(180, loadRound);
+			PS.spriteShow(player, false);
+			PS.glyph(x, y, 0);
+			PS.spriteMove(player, 7, 7);
 
-		PS.timerStop(game_time);
-
-	}
-
-	if (STATUS_MANAGER.locked) {
-		STATUS_MANAGER.cooldown += 1;
-		if (STATUS_MANAGER.cooldown >= STATUS_MANAGER.max) {
-			STATUS_MANAGER.locked = false;
-			STATUS_MANAGER.cooldown = 0;
+			PS.timerStop(game_time);
 
 		}
-	}
 
+		if (STATUS_MANAGER.locked) {
+			STATUS_MANAGER.cooldown += 1;
+			if (STATUS_MANAGER.cooldown >= STATUS_MANAGER.max) {
+				STATUS_MANAGER.locked = false;
+				STATUS_MANAGER.cooldown = 0;
 
-	if (rounds[currentRound].enemiesSpawned >= rounds[currentRound].enemyCount && enemies.length === 0 && currentRound < rounds.length) {
-		updateStatus(WIN_QUOTES[PS.random(WIN_QUOTES.length) - 1]);
-		currentRound += 1;
-		if (currentRound >= rounds.length - 1) {
-			currentRound = 0;
+			}
 		}
-		PS.timerStop(game_time);
-		playerControl = false;
-		restarting = PS.timerStart(180, loadRound);
+
+
+		if (rounds[currentRound].enemiesSpawned >= rounds[currentRound].enemyCount && enemies.length === 0 && currentRound < rounds.length) {
+			updateStatus(WIN_QUOTES[PS.random(WIN_QUOTES.length) - 1]);
+			currentRound += 1;
+			if (currentRound >= rounds.length) {
+				currentRound = 0;
+			}
+			PS.timerStop(game_time);
+			playerControl = false;
+			restarting = PS.timerStart(180, loadRound);
+		}
 	}
 }
 
@@ -592,11 +567,17 @@ var updateStatus = function (text) {
 }
 
 var spearCollide = function(s1, p1, s2, p2, type) {
-	if(s2!=player && type===PS.SPRITE_OVERLAP ) {
-		if (!POWER_PIERCE.active) {
-			mark_delete_spear.push(s1);
+
+	if (s2!=player) {
+		if(type === PS.SPRITE_OVERLAP) {
+			if (!POWER_PIERCE.active) {
+				mark_delete_spear.push(s1);
+			}
+			mark_delete_enemy.push(s2);
 		}
-		mark_delete_enemy.push(s2);
+		else if(type === PS.SPRITE_TOUCH && POWER_PIERCE.active) {
+			mark_delete_enemy.push(s2);
+		}
 	}
 }
 
@@ -641,7 +622,6 @@ var fadePlayerColor = function() {
 		PS.spriteSolidColor(player, color);
 	}
 }
-
 var restart = function() {
 
 };
@@ -665,19 +645,10 @@ PS.exitGrid = function( options ) {};
 
 PS.keyDown = function( key, shift, ctrl, options ) {
 
-	PS.glyphFade(PS.ALL, PS.ALL, 0);
-	PS.glyph(3, 2, 0);
-	PS.glyph(2, 3, 0);
-	PS.glyph(3, 3, 0);
-	PS.glyph(4, 3, 0);
-	PS.glyph(5, 3, 0);
-
-
 	var x = PS.spriteMove(player).x;
 	var y = PS.spriteMove(player).y;
 
-	if(playerControl) {
-
+	if(playerControl && isCutscene == false) {
 		switch (key) {
 			case PS.KEY_ARROW_UP:
 			case 119:
