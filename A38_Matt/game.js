@@ -60,7 +60,7 @@ const W = ( function () {
 	let _max_x; // maximum actor x-pos
 	let _max_y; // maximum actor y-pos
 
-	let _level = 0; // starting/current level
+	let _level = 20; // starting/current level
 
 	let _actor_x; // current actor x-pos
 	let _actor_y; // current actor y-pos
@@ -432,13 +432,18 @@ const W = ( function () {
 
 		// Level 20
 		{
-			actor_x : 0,
-			actor_y : 7,
+			actor_x : 4,
+			actor_y : 9,
 			actor_size : 0,
 
-			goal_x : 9,
-			goal_y : 7,
-			goal_delta : 32
+			goal_x : 4,
+			goal_y : 3,
+			goal_delta : 64,
+			foods : [
+				[ 1, 1 ], [ 2, 1 ], [ 3, 1 ],
+				[ 4, 1 ], [ 5, 1 ], [ 6, 1 ], [ 7, 1 ]
+
+			],
 		}
 	];
 
